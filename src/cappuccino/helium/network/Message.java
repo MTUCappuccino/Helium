@@ -7,12 +7,30 @@ package cappuccino.helium.network;
 public class Message {
     
     public enum MessageType {
-        NEW_MESSAGE, EDIT_MESSAGE, DELETE_MESSAGE, CLOSE_CONNECTION,
-        LEAVE_SERVER
+        NEW_MESSAGE(0), EDIT_MESSAGE(1), DELETE_MESSAGE(2), CLOSE_CONNECTION(3),
+        LEAVE_SERVER(4);
+        
+        private final int value;
+        private MessageType(int value) {
+            this.value = value;
+        }
+        
+        public int getValue() {
+            return value;
+        }
     }
     
     public enum ContentType {
-        IMAGE, TEXT
+        IMAGE(0), TEXT(1);
+        
+        private final int value;
+        private ContentType(int value) {
+            this.value = value;
+        }
+        
+        public int getValue() {
+            return value;
+        }
     }
     
     private MessageType type;
@@ -20,19 +38,19 @@ public class Message {
     private ContentType contentType;
     private String senderHandle;
     private long sentTime;
-    private byte[] data;
+    private String content;
 
-    public Message(MessageType type, ContentType contentType, String senderHandle, byte[] data) {
-        this(type, -1, contentType, senderHandle, System.currentTimeMillis(), data);
+    public Message(MessageType type, ContentType contentType, String senderHandle, String content) {
+        this(type, -1, contentType, senderHandle, System.currentTimeMillis(), content);
     }
 
-    public Message(MessageType type, int id, ContentType contentType, String senderHandle, long sentTime, byte[] data) {
+    public Message(MessageType type, int id, ContentType contentType, String senderHandle, long sentTime, String content) {
         this.type = type;
         this.id = id;
         this.contentType = contentType;
         this.senderHandle = senderHandle;
         this.sentTime = sentTime;
-        this.data = data;
+        this.content = content;
     }
 
     public MessageType getType() {
@@ -75,16 +93,16 @@ public class Message {
         this.sentTime = sentTime;
     }
 
-    public byte[] getData() {
-        return data;
+    public String getContent() {
+        return content;
     }
 
-    public void setData(byte[] data) {
-        this.data = data;
+    public void setContent(String content) {
+        this.content = content;
     }
-
-    public byte[] toNetworkPacketBytes() {
-        // TODO
-        return null;
+    
+    @Override
+    public String toString() {
+        return String.valueOf(type) + ";" + String.valueOf(id) + ";" + String.valueOf(contentType) + ";" + senderHandle + ";" + content;
     }
 }

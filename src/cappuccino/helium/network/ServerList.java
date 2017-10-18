@@ -3,9 +3,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Paint;
 public class ServerList {
-	ObservableList<ServerObj> servers = FXCollections.observableArrayList();
+	ObservableList<Server> servers = FXCollections.observableArrayList();
 	
-	public void addServer(String name, Paint theme, String ip, int port) {
-		servers.add(new ServerObj(name, theme, ip, port));
+	public void addServer(String ip, int port) {
+		servers.add(new Server(ip, port));
 	}
 }

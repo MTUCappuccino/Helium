@@ -1,15 +1,21 @@
 package cappuccino.helium.ui.mainview;
 
+import cappuccino.helium.network.Message;
+import cappuccino.helium.network.Server;
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.paint.Paint;
 
 /**
  * FXML Controller class
@@ -40,12 +46,8 @@ public class MainViewController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        chatWindow.textProperty().addListener(new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> observable, Object oldValue,
-                    Object newValue) {
-                chatWindow.setScrollTop(Double.MAX_VALUE);
-            }
+        chatWindow.textProperty().addListener((ObservableValue<?> observable, Object oldValue, Object newValue) -> {
+            chatWindow.setScrollTop(Double.MAX_VALUE);
         });
     }
 
@@ -64,6 +66,17 @@ public class MainViewController implements Initializable {
         // connect to server...
         String handle = userHandle.getText();
         String password = serverPassword.getText();
+
+        Server server = new Server(ip, port);
+
+        server.getMessages().addListener(new ListChangeListener<Message>() {
+            @Override
+            public void onChanged(ListChangeListener.Change<? extends Message> c) {
+                for (Message m : c.getAddedSubList()) {
+                    chatWindow.appendText(m.getSenderHandle() + ": " + (!chatWindow.getText().equals("") ? "\n" : "") + m.getContent());
+                }
+            }
+        });
 
         // send handle and password if necessary...
         chatWindow.setDisable(false);
