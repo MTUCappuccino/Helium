@@ -103,6 +103,6 @@ public class Message {
     
     @Override
     public String toString() {
-        return String.valueOf(type) + ";" + String.valueOf(id) + ";" + String.valueOf(contentType) + ";" + senderHandle + ";" + content;
+        return String.valueOf(type.getValue()) + ";" + String.valueOf(id) + ";" + String.valueOf(contentType.getValue()) + ";" + senderHandle + ";" + content + "\n";
     }
 }

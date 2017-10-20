@@ -1,5 +1,6 @@
 package cappuccino.helium;
 
+import cappuccino.helium.ui.mainview.MainViewController;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,6 +23,7 @@ public class Main extends Application {
             FXMLLoader controllerLayout = new FXMLLoader();
             controllerLayout.setLocation(getClass().getResource("ui/mainview/MainView.fxml"));
             Parent controllerLayoutRoot = (Parent) controllerLayout.load();
+            MainViewController controller = (MainViewController) controllerLayout.getController();
             Scene controllerScene = new Scene(controllerLayoutRoot);
             primaryStage.setScene(controllerScene);
 
@@ -29,6 +31,8 @@ public class Main extends Application {
 
             primaryStage.setOnCloseRequest((WindowEvent event) -> {
                 System.out.println("Custom Close Event");
+                controller.closeConnections();
+                System.exit(0);
             });
 
             primaryStage.show();

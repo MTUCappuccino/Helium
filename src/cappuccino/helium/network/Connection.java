@@ -76,7 +76,7 @@ public class Connection implements Runnable {
 
     public void disconnect() {
         try {
-            sendMessage(new Message(Message.MessageType.CLOSE_CONNECTION, null, null, null));
+//            sendMessage(new Message(Message.MessageType.CLOSE_CONNECTION, null, null, null));
             out.flush();
             out.close();
             in.close();
@@ -89,6 +89,7 @@ public class Connection implements Runnable {
 
     public void initialConnection() throws IOException {
         String requiredElements = in.readLine();
+        System.out.println("Server says: " + requiredElements);
         String response = "";
         if (requiredElements.substring(0, 1).equals("1")) { // handle is required
             handleRequired = true;
@@ -104,12 +105,21 @@ public class Connection implements Runnable {
             passwordRequired = false;
             response += "NULL";
         }
+        
+        while(server.getHandle() == null);
+        //This is temporary:
+        response = String.valueOf(server.getHandle().length()) + "," + 
+                String.valueOf(server.getPassword().length()) + "," + 
+                server.getHandle() + server.getPassword() + "\n";
+        
         out.write(response);
-        response = in.readLine();
-        if (response.equals("invalid_password")) {
+        out.flush();
+        String server_response = in.readLine();
+        System.out.println("Server says: " + server_response);
+        if (server_response.equals("invalid_password")) {
             initialConnection();
         }
-        String[] items = response.split(";");
+        String[] items = server_response.split(";");
         server.setName(items[0]);
         server.setTheme(Paint.valueOf(items[1]));
         // TODO set background image to items[2]
@@ -124,6 +134,8 @@ public class Connection implements Runnable {
             while (running) {
                 String message = in.readLine();
 
+                System.out.println("Received message from server: " + message);
+                
                 String[] unparsedSegments = message.split(";");
 
                 Message.MessageType type = Message.MessageType.values()[Integer.parseInt(unparsedSegments[0])];

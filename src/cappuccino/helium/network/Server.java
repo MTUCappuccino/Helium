@@ -92,4 +92,8 @@ public class Server {
     public ObservableList<Message> getMessages() {
         return messages;
     }
+    
+    public void closeConnection() {
+        connection.disconnect();
+    }
 }

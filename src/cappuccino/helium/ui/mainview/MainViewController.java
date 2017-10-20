@@ -41,6 +41,8 @@ public class MainViewController implements Initializable {
     @FXML
     private Button sendButton;
 
+    private Server server;
+
     /**
      * Initializes the controller class.
      */
@@ -67,13 +69,21 @@ public class MainViewController implements Initializable {
         String handle = userHandle.getText();
         String password = serverPassword.getText();
 
-        Server server = new Server(ip, port);
+        server = new Server(ip, port);
+        server.setHandle(handle);
+        server.setPassword(password);
 
-        server.getMessages().addListener(new ListChangeListener<Message>() {
-            @Override
-            public void onChanged(ListChangeListener.Change<? extends Message> c) {
-                for (Message m : c.getAddedSubList()) {
-                    chatWindow.appendText(m.getSenderHandle() + ": " + (!chatWindow.getText().equals("") ? "\n" : "") + m.getContent());
+        server.getMessages().addListener((ListChangeListener.Change<? extends Message> c) -> {
+            while (c.next()) {
+                if (c.wasAdded()) {
+                    for (Message m : c.getAddedSubList()) {
+                        System.out.println("GUI is handling message: " + m);
+                        if (m.getSenderHandle().equals(server.getHandle())) {
+                            continue; // skip this message because I sent it
+                        }
+                        chatWindow.appendText(m.getSenderHandle() + ": " + m.getContent() + "\n");
+                        chatWindow.setScrollTop(1000);
+                    }
                 }
             }
         });
@@ -95,9 +105,14 @@ public class MainViewController implements Initializable {
         messageField.setText("");
 
         System.out.println("Send message: " + message);
+        server.sendMessage(new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, server.getHandle(), message));
 
-        chatWindow.appendText("Me: " + (!chatWindow.getText().equals("") ? "\n" : "") + message);
+        chatWindow.appendText("Me: " + message + "\n");
         chatWindow.setScrollTop(1000);
+    }
+    
+    public void closeConnections() {
+        server.closeConnection();
     }
 
 }
