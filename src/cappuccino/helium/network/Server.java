@@ -3,6 +3,9 @@ package cappuccino.helium.network;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Paint;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 
 public class Server {
 
@@ -31,6 +34,17 @@ public class Server {
 
     public void recieveMessage(Message newMessage) {
         messages.add(newMessage);
+        if(notificationsAllowed == true) {
+        	try{
+        		AudioInputStream audioInputStream =
+        			AudioSystem.getAudioInputStream(
+        				this.getClass().getResource("src\mp_grail.wav"));
+        		Clip clip = AudioSystem.getClip();
+        		clip.open(audioInputStream);
+        		clip.start();
+        	}
+        	catch(Exception e) { }
+        }
     }
     
     public String getIP() {
