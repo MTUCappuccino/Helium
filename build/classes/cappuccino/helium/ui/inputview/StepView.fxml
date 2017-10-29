@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<fx:root id="AnchorPane" minHeight="454.0" minWidth="617.0" prefHeight="454.0" prefWidth="617.0" style="-fx-background-color: white;" styleClass="mainFxmlClass" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1">
+<!--<AnchorPane id="AnchorPane" minHeight="454.0" minWidth="617.0" prefHeight="454.0" prefWidth="617.0" style="-fx-background-color: white;" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cappuccino.helium.ui.inputview.StepViewController">-->
+    <stylesheets>
+        <URL value="@inputview.css" />
+    </stylesheets>
+        <VBox alignment="CENTER" layoutX="138.0" layoutY="53.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <HBox alignment="CENTER">
+                    <children>
+                        <AnchorPane prefHeight="215.0" prefWidth="324.0">
+                            <children>
+                                <Label fx:id="label" alignment="CENTER" text="Choose a handle" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                                    <font>
+                                        <Font name="System Bold" size="42.0" />
+                                    </font>
+                                </Label>
+                                <Button id="next-button" fx:id="button" focusTraversable="false" layoutX="235.0" layoutY="166.0" mnemonicParsing="false" onAction="#stepAction" text="Next" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" />                        
+                                <TextField id="text-field" fx:id="textfield" layoutY="79.0" onAction="#stepAction" prefHeight="57.0" prefWidth="324.0" />
+                        <PasswordField id="text-field" fx:id="passwordfield" layoutY="79.0" onAction="#stepAction" prefHeight="57.0" prefWidth="324.0" visible="false" />
+                     <ProgressIndicator fx:id="progressIndicator" layoutX="193.0" layoutY="177.0" prefHeight="29.0" prefWidth="29.0" style="-fx-progress-color: lime;" visible="false" />
+                            </children>
+                        </AnchorPane>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+</fx:root>

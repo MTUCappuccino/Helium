@@ -1,0 +1,67 @@
+/*
+ * Empty Stylesheet file.
+ */
+
+#cancel-button {
+    -fx-opacity: .5;
+}
+
+#cancel-button:hover {
+    -fx-opacity: .7;
+}
+
+#cancel-button:pressed {
+    -fx-opacity: 1.0;
+}
+
+#text-field {
+    -fx-padding: 10px;
+    -fx-font-size: 2.0em;
+    -fx-border-color: #ccc;
+    -fx-border-radius: 8px;
+    -fx-background-color: white;
+    -fx-background-radius: 8px;
+}
+
+#text-field:hover {
+    -fx-border-color: #a7a7a7;
+}
+
+#text-field:focused {
+    -fx-border-color: #888;
+    -fx-background-color: #f8f8f8;
+}
+
+#next-button {
+    -fx-text-fill: white;
+    -fx-padding: 8 25 15 25;
+    -fx-background-insets: 0,0 0 5 0, 0 0 6 0, 0 0 7 0;
+    -fx-background-radius: 8;
+    -fx-background-color: 
+        linear-gradient(from 0% 93% to 0% 100%, #13a343 0%, #12903b 100%),
+        #249d40,
+        #3ad86e,
+        radial-gradient(center 50% 50%, radius 100%, #3ad86e, #2cc54e);
+    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.75) , 4,0,0,1 );
+    -fx-font-weight: bold;
+    -fx-font-size: 1.4em;
+}
+#next-button:hover {
+    -fx-background-color: 
+        linear-gradient(from 0% 93% to 0% 100%, #13a343 0%, #12903b 100%),
+        #249d40,
+        #3ad86e,
+        radial-gradient(center 50% 50%, radius 100%, #4bea98, #2cc54e);
+}
+#next-button:pressed {
+    -fx-padding: 10 25 13 25;
+    -fx-background-insets: 2 0 0 0,2 0 3 0, 2 0 4 0, 2 0 5 0;
+}
+
+.textbutton {
+    -fx-background-color: none;
+}
+
+.textbutton:hover {
+    -fx-underline: true;
+}

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<?import cappuccino.helium.ui.inputview.StepView?>
+<?import cappuccino.helium.ui.inputview.EnterCodeView?>
+<?import cappuccino.helium.ui.inputview.AddServerByAddressView?>
+
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cappuccino.helium.ui.inputview.InputViewController">
+    <children>
+        <StepView fx:id="step1" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+        <StepView fx:id="step2" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+        <EnterCodeView fx:id="enterCode" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+        <AddServerByAddressView fx:id="addByAddress" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+        
+        <Label id="label" layoutX="10.0" layoutY="10.0" text="Joining XXX Server" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="20.0">
+            <font>
+                <Font name="System Bold" size="12.0" />
+            </font>
+        </Label>
+        <Button id="cancel-button" contentDisplay="TOP" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" onAction="#cancel" style="-fx-background-color: none;" stylesheets="@inputview.css" text="CANCEL" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0" focusTraversable="false">
+            <graphic>
+                <ImageView fitHeight="48.0" fitWidth="69.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@../images/close.png" />
+                    </image>
+                </ImageView>
+            </graphic>
+        </Button>
+    </children>
+</AnchorPane>

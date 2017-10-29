@@ -1,13 +1,17 @@
 package cappuccino.helium.network;
 
+import java.io.IOException;
+import java.net.URL;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.paint.Paint;
+import javafx.scene.Node;
+import javafx.scene.paint.Color;
 
 public class Server {
 
     private String name;
-    private Paint theme;
+    private Color theme;
+    private URL icon;
     private String ip;
     private int port;
     private boolean notificationsAllowed;
@@ -15,15 +19,23 @@ public class Server {
     private String handle;
     private String password;
     ObservableList<Message> messages = FXCollections.observableArrayList();
+    ObservableList<Node> messageViews = FXCollections.observableArrayList();
     Connection connection;
 
     public Server(String ip, int port) {
         this.ip = ip;
         this.port = port;
         connection = new Connection(this);
-        connection.connect();
     }
 
+    public boolean[] connect() throws IOException {
+        return connection.connect();
+    }
+    
+    public boolean authenticate() throws IOException {
+        return connection.sendAuthentication();
+    }
+    
     public void sendMessage(Message newMessage) {
         messages.add(newMessage);
         connection.sendMessage(newMessage);
@@ -49,12 +61,20 @@ public class Server {
         this.name = name;
     }
 
-    public Paint getTheme() {
+    public Color getTheme() {
         return theme;
     }
 
-    public void setTheme(Paint theme) {
+    public void setTheme(Color theme) {
         this.theme = theme;
+    }
+
+    public URL getIcon() {
+        return icon;
+    }
+
+    public void setIcon(URL icon) {
+        this.icon = icon;
     }
 
     public String getHandle() {
@@ -95,5 +115,21 @@ public class Server {
     
     public void closeConnection() {
         connection.disconnect();
+    }
+    
+    public boolean isHandleRequired() {
+        return connection.isHandleRequired();
+    }
+    
+    public boolean isPasswordRequired() {
+        return connection.isHandleRequired();
+    }
+    
+    public void addMessageView(Node n) {
+        messageViews.add(n);
+    }
+    
+    public ObservableList<Node> getMessageViews() {
+        return messageViews;
     }
 }
