@@ -1,11 +1,22 @@
 package cappuccino.helium.network;
 
+import java.awt.AWTException;
+import java.awt.Image;
+import java.awt.SystemTray;
+import java.awt.Toolkit;
+import java.awt.TrayIcon;
+import java.awt.TrayIcon.MessageType;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 
 public class Server {
 
@@ -14,8 +25,8 @@ public class Server {
     private URL icon;
     private String ip;
     private int port;
-    private boolean notificationsAllowed;
-    private boolean mentionsAllowed;
+    private boolean notificationsAllowed = true;
+    private boolean mentionsAllowed = true;
     private String handle;
     private String password;
     ObservableList<Message> messages = FXCollections.observableArrayList();
@@ -43,8 +54,35 @@ public class Server {
 
     public void recieveMessage(Message newMessage) {
         messages.add(newMessage);
+        if(notificationsAllowed == true) {
+            try{
+                AudioInputStream audioInputStream;
+                audioInputStream = AudioSystem.getAudioInputStream(
+                        this.getClass().getResource("src\\message2.wav"));
+        		Clip clip = AudioSystem.getClip();
+        		clip.open(audioInputStream);
+        		clip.start();
+        	}
+        	catch(Exception e) { }
+        }
+        try {
+            displayTray(newMessage);
+        } catch (AWTException | MalformedURLException e){
+            System.out.println(e);
+        }
     }
     
+    private void displayTray(Message message) throws AWTException, java.net.MalformedURLException {
+        SystemTray tray = SystemTray.getSystemTray();
+
+        Image image = Toolkit.getDefaultToolkit().createImage("icon.png");
+        TrayIcon trayIcon = new TrayIcon(image, "Tray Demo");
+        trayIcon.setImageAutoSize(true);
+        trayIcon.setToolTip("Helium");
+        tray.add(trayIcon);
+        trayIcon.displayMessage(message.getContent(), message.getSenderHandle(), MessageType.INFO);
+    }
+        
     public String getIP() {
         return ip;
     }
