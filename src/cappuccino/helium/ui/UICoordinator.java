@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.util.Duration;
 
@@ -41,12 +42,14 @@ public class UICoordinator {
     }
 
     public void askInputViewForInfo(boolean askForHandle, boolean askForPassword, BiConsumer<String, String> callback, Runnable cancelCallback) {
-        inputViewController.askForInformation(askForHandle, askForPassword, callback, () -> {
-            hideAddServerView();
-            cancelCallback.run();
+        Platform.runLater(() -> {
+            inputViewController.askForInformation(askForHandle, askForPassword, callback, () -> {
+                hideAddServerView();
+                cancelCallback.run();
+            });
         });
     }
-    
+
     public void hideAddServerView() {
         Timeline t = new Timeline(
                 new KeyFrame(Duration.seconds(0), new KeyValue(inputView.opacityProperty(), 1.0)),
@@ -56,11 +59,11 @@ public class UICoordinator {
             inputView.setVisible(false);
         });
     }
-    
+
     public void hideProgressIndicators() {
         inputViewController.hideProgressIndicators();
     }
-    
+
     public void showBadPasswordAnimation() {
         inputViewController.showBadPasswordAnimation();
     }

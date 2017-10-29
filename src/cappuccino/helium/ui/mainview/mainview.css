@@ -11,7 +11,7 @@
     -fx-font-weight: bold;
     -fx-font-size: 1.1em;
     -fx-alignment: CENTER_LEFT;
-    
+
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
 }
@@ -136,4 +136,67 @@
 #next-button:pressed {
     -fx-padding: 10 25 13 25;
     -fx-background-insets: 2 0 0 0,2 0 3 0, 2 0 4 0, 2 0 5 0;
+}
+
+
+#red-button {
+    -fx-text-fill: white;
+    -fx-padding: 8 25 15 25;
+    -fx-background-insets: 0,0 0 5 0, 0 0 6 0, 0 0 7 0;
+    -fx-background-radius: 8;
+    -fx-background-color: 
+        linear-gradient(from 0% 93% to 0% 100%, #e71010 0%, #cb0e0e 100%),
+        #e51010,
+        #f36666,
+        radial-gradient(center 50% 50%, radius 100%, #e74f4f, #f14242);
+    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.75) , 4,0,0,1 );
+    -fx-font-weight: bold;
+    -fx-font-size: 1.4em;
+}
+#red-button:hover {
+    -fx-background-color: 
+        linear-gradient(from 0% 93% to 0% 100%, #e71010 0%, #cb0e0e 100%),
+        #e51010,
+        #f36666,
+        radial-gradient(center 50% 50%, radius 100%, #f36666, #f14242);
+}
+#red-button:pressed {
+    -fx-padding: 10 25 13 25;
+    -fx-background-insets: 2 0 0 0,2 0 3 0, 2 0 4 0, 2 0 5 0;
+}
+
+.check-box .box {
+    -fx-background-color: white;
+    -fx-border-color:grey;
+    -fx-border-radius:3px; 
+}
+
+.check-box:selected .box {
+    -fx-border-color: none;
+}
+
+.check-box:selected .mark {
+    -fx-background-color: white;
+}
+
+.check-box:selected .box {
+    -fx-background-color: #3ad86e;
+    -fx-border-color: #3ad86e;
+}
+
+.check-box:hover .box {
+    -fx-background-color: #4bea98;
+    -fx-border-color: #4bea98;
+}
+
+#close-sidebar-button {
+    -fx-background-color: none;
+}
+
+#close-sidebar-button:hover {
+    -fx-background-color: #EEE;
+}
+
+#close-sidebar-button:pressed {
+    -fx-background-color: #DDD;
 }

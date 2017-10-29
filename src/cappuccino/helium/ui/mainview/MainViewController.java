@@ -10,6 +10,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.animation.Transition;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -68,6 +71,8 @@ public class MainViewController implements Initializable {
     private ScrollPane scrollpane;
     @FXML
     private AnchorPane noServersView;
+    @FXML
+    private AnchorPane sidebar;
 
     private UICoordinator coordinator;
     ObservableList<Server> serverList = FXCollections.observableArrayList();
@@ -129,6 +134,8 @@ public class MainViewController implements Initializable {
         sendButton.disableProperty().bind(Bindings.isEmpty(messageField.textProperty()));
         scrollpane.setFitToHeight(true);
         scrollpane.setFitToWidth(true);
+        sidebar.setVisible(true);
+        sidebar.translateXProperty().bind(sidebar.widthProperty());
 
         serverNameLabel.textProperty().bind(serverName);
         handleLabel.textProperty().bind(Bindings.concat("@", handle));
@@ -313,5 +320,30 @@ public class MainViewController implements Initializable {
 
     public void setCoordinator(UICoordinator coordinator) {
         this.coordinator = coordinator;
+    }
+    
+    @FXML
+    private void openSidebar(ActionEvent event) {
+        sidebar.translateXProperty().unbind();
+        Timeline timeline = new Timeline();
+        KeyValue kv1 = new KeyValue(sidebar.translateXProperty(), sidebar.getWidth(), Interpolator.EASE_IN);
+        KeyValue kv2 = new KeyValue(sidebar.translateXProperty(), 0, Interpolator.EASE_OUT);
+        KeyFrame kf = new KeyFrame(Duration.seconds(0.2), kv1, kv2);
+        timeline.getKeyFrames().add(kf);
+        timeline.play();
+    }
+    
+    @FXML
+    private void closeSidebar(ActionEvent event) {
+        sidebar.translateXProperty().unbind();
+        Timeline timeline = new Timeline();
+        KeyValue kv1 = new KeyValue(sidebar.translateXProperty(), 0, Interpolator.EASE_IN);
+        KeyValue kv2 = new KeyValue(sidebar.translateXProperty(), sidebar.getWidth(), Interpolator.LINEAR);
+        KeyFrame kf = new KeyFrame(Duration.seconds(0.2), kv1, kv2);
+        timeline.getKeyFrames().add(kf);
+        timeline.play();
+        timeline.setOnFinished((e) -> {
+            sidebar.translateXProperty().bind(sidebar.widthProperty());
+        });
     }
 }

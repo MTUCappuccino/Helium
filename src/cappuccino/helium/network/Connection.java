@@ -102,11 +102,11 @@ public class Connection implements Runnable {
 
     public boolean sendAuthentication() throws IOException {
         String handle = handleRequired ? server.getHandle() : "NULL";
-        String password = handleRequired ? server.getPassword() : "NULL";
+        String password = passwordRequired ? server.getPassword() : "NULL";
 
-        String response = String.valueOf(server.getHandle().length()) + ","
-                + String.valueOf(server.getPassword().length()) + ","
-                + server.getHandle() + server.getPassword() + "\n";
+        String response = String.valueOf(handle.length()) + ","
+                + String.valueOf(password.length()) + ","
+                + handle + password + "\n";
 
         out.write(response);
         out.flush();
