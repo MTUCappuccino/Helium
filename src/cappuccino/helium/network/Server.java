@@ -75,12 +75,12 @@ public class Server {
     private void displayTray(Message message) throws AWTException, java.net.MalformedURLException {
         SystemTray tray = SystemTray.getSystemTray();
 
-        Image image = Toolkit.getDefaultToolkit().createImage("icon.png");
+        Image image = Toolkit.getDefaultToolkit().createImage("src\\HeliumLogo.png");
         TrayIcon trayIcon = new TrayIcon(image, "Tray Demo");
         trayIcon.setImageAutoSize(true);
         trayIcon.setToolTip("Helium");
         tray.add(trayIcon);
-        trayIcon.displayMessage(message.getContent(), message.getSenderHandle(), MessageType.INFO);
+        trayIcon.displayMessage(new String(message.getContent()), message.getSenderHandle(), MessageType.INFO);
     }
         
     public String getIP() {

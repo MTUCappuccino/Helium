@@ -8,6 +8,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Text;
+import javafx.scene.image.Image;
 
 /**
  *
@@ -23,6 +24,8 @@ public class MessageView extends AnchorPane {
     private AnchorPane bodyPane;
     @FXML
     private Text text;
+    @FXML
+    private Image img;
     @FXML
     private Text handle;
     @FXML
@@ -41,7 +44,7 @@ public class MessageView extends AnchorPane {
     }
     
     public void setMessage(Message m) {
-        this.text.setText(m.getContent());
+        this.text.setText(new String(m.getContent()));
         this.handle.setText(m.getSenderHandle());
     }
     

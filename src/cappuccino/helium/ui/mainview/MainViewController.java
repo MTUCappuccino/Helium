@@ -3,7 +3,10 @@ package cappuccino.helium.ui.mainview;
 import cappuccino.helium.network.Message;
 import cappuccino.helium.network.Server;
 import cappuccino.helium.ui.UICoordinator;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -43,6 +46,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
+import javax.imageio.ImageIO;
 
 /**
  * FXML Controller class
@@ -288,10 +292,14 @@ public class MainViewController implements Initializable {
         messageField.clear();
 
         System.out.println("Send message: " + message);
-        Message m = new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, currentServer.getHandle(), message);
+        Message m = new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, currentServer.getHandle(), message.getBytes());
         currentServer.sendMessage(m);
-
-        addMessageToScreen(m);
+        if(m.getId() == 0) {
+            addMessageToScreen(m);
+        }
+        if(m.getId() == 1) {
+            addImageToScreen(m);
+        }
     }
 
     public void closeConnections() {
@@ -317,7 +325,18 @@ public class MainViewController implements Initializable {
         messages.getChildren().add(line);
         currentServer.addMessageView(line);
     }
-
+    
+    public void addImageToScreen(Message m) {
+        try {
+            ByteArrayInputStream in = new ByteArrayInputStream(m.getContent());
+            BufferedImage img = ImageIO.read(in);
+            
+        } catch(IOException e) {
+            System.out.println(e);
+        }
+        
+    }
+    
     public void setCoordinator(UICoordinator coordinator) {
         this.coordinator = coordinator;
     }
