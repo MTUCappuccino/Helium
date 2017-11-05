@@ -38,13 +38,13 @@ public class Message {
     private ContentType contentType;
     private String senderHandle;
     private long sentTime;
-    private byte[] content;
+    private String content;
 
-    public Message(MessageType type, ContentType contentType, String senderHandle, byte[] content) {
+    public Message(MessageType type, ContentType contentType, String senderHandle, String content) {
         this(type, -1, contentType, senderHandle, System.currentTimeMillis(), content);
     }
 
-    public Message(MessageType type, int id, ContentType contentType, String senderHandle, long sentTime, byte[] content) {
+    public Message(MessageType type, int id, ContentType contentType, String senderHandle, long sentTime, String content) {
         this.type = type;
         this.id = id;
         this.contentType = contentType;
@@ -93,11 +93,11 @@ public class Message {
         this.sentTime = sentTime;
     }
 
-    public byte[] getContent() {
+    public String getContent() {
         return content;
     }
 
-    public void setContent(byte[] content) {
+    public void setContent(String content) {
         this.content = content;
     }
     

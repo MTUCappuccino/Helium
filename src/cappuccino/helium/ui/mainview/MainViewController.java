@@ -3,10 +3,15 @@ package cappuccino.helium.ui.mainview;
 import cappuccino.helium.network.Message;
 import cappuccino.helium.network.Server;
 import cappuccino.helium.ui.UICoordinator;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -45,6 +50,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.FileChooser;
 import javafx.util.Duration;
 import javax.imageio.ImageIO;
 
@@ -292,14 +298,9 @@ public class MainViewController implements Initializable {
         messageField.clear();
 
         System.out.println("Send message: " + message);
-        Message m = new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, currentServer.getHandle(), message.getBytes());
+        Message m = new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, currentServer.getHandle(), message);
         currentServer.sendMessage(m);
-        if(m.getId() == 0) {
-            addMessageToScreen(m);
-        }
-        if(m.getId() == 1) {
-            addImageToScreen(m);
-        }
+        addMessageToScreen(m);
     }
 
     public void closeConnections() {
@@ -324,17 +325,6 @@ public class MainViewController implements Initializable {
         line.getChildren().add(view);
         messages.getChildren().add(line);
         currentServer.addMessageView(line);
-    }
-    
-    public void addImageToScreen(Message m) {
-        try {
-            ByteArrayInputStream in = new ByteArrayInputStream(m.getContent());
-            BufferedImage img = ImageIO.read(in);
-            
-        } catch(IOException e) {
-            System.out.println(e);
-        }
-        
     }
     
     public void setCoordinator(UICoordinator coordinator) {
@@ -365,4 +355,26 @@ public class MainViewController implements Initializable {
             sidebar.translateXProperty().bind(sidebar.widthProperty());
         });
     }
+    
+     public void sendImage(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+             
+        FileChooser.ExtensionFilter extFilterJPG = new FileChooser.ExtensionFilter("JPG files (*.jpg)", "*.JPG");
+        FileChooser.ExtensionFilter extFilterPNG = new FileChooser.ExtensionFilter("PNG files (*.png)", "*.PNG");
+        fileChooser.getExtensionFilters().addAll(extFilterJPG, extFilterPNG);
+              
+        File file = fileChooser.showOpenDialog(null);
+                      
+            try {
+                BufferedImage bufferedImage = ImageIO.read(file);
+            } catch (IOException e) {
+                System.out.println(e);
+            }
+          //  Message message = new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, currentServer.getHandle(), (String) bufferedImage);
+
+ 
+    }
+    // public void addImageToScreen(Message m) {
+        
+    //}
 }
