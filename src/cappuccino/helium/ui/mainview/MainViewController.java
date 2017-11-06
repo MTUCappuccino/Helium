@@ -7,16 +7,14 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.math.BigInteger;
 import java.net.Socket;
 import java.net.URL;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -51,6 +49,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.FileChooser;
 import javafx.util.Duration;
 import javax.imageio.ImageIO;
 
@@ -372,7 +371,6 @@ public class MainViewController implements Initializable {
         }
 
     }
-
     public void setCoordinator(UICoordinator coordinator) {
         this.coordinator = coordinator;
     }
@@ -401,4 +399,26 @@ public class MainViewController implements Initializable {
             sidebar.translateXProperty().bind(sidebar.widthProperty());
         });
     }
+    
+     public void sendImage(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+             
+        FileChooser.ExtensionFilter extFilterJPG = new FileChooser.ExtensionFilter("JPG files (*.jpg)", "*.JPG");
+        FileChooser.ExtensionFilter extFilterPNG = new FileChooser.ExtensionFilter("PNG files (*.png)", "*.PNG");
+        fileChooser.getExtensionFilters().addAll(extFilterJPG, extFilterPNG);
+              
+        File file = fileChooser.showOpenDialog(null);
+                      
+            try {
+                BufferedImage bufferedImage = ImageIO.read(file);
+            } catch (IOException e) {
+                System.out.println(e);
+            }
+          //  Message message = new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, currentServer.getHandle(), (String) bufferedImage);
+
+ 
+    }
+    // public void addImageToScreen(Message m) {
+        
+    //}
 }
