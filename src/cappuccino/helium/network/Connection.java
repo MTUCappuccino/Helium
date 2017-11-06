@@ -140,9 +140,10 @@ public class Connection implements Runnable {
                 int id = Integer.parseInt(unparsedSegments[1]);
                 Message.ContentType contentType = Message.ContentType.values()[Integer.parseInt(unparsedSegments[2])];
                 String sender = unparsedSegments[3];
-                byte[] userMessage = unparsedSegments[4].getBytes();
+                long send_time = Long.parseLong(unparsedSegments[4]);
+                String userMessage = unparsedSegments[5];
 
-                Message m = new Message(type, id, contentType, sender, System.currentTimeMillis(), userMessage);
+                Message m = new Message(type, id, contentType, sender, send_time, userMessage);
                 server.recieveMessage(m);
             }
         } catch (IOException ex) {

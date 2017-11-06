@@ -54,6 +54,7 @@ public class EnterCodeView extends AnchorPane {
     
     public void reset() {
         textfield.setText("");
+        progressIndicator.setVisible(false);
     }
     
     public void hideProgressIndicator() {
@@ -62,6 +63,7 @@ public class EnterCodeView extends AnchorPane {
     
     @FXML
     private void stepAction(ActionEvent event) {
+        progressIndicator.setVisible(true);
         if (callback != null) {
             callback.accept(textfield.getText());
         }

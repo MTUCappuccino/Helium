@@ -4,9 +4,15 @@ import cappuccino.helium.network.Message;
 import cappuccino.helium.network.Server;
 import cappuccino.helium.ui.UICoordinator;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.math.BigInteger;
+import java.net.Socket;
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -197,31 +203,31 @@ public class MainViewController implements Initializable {
     @FXML
     private void addServer(ActionEvent event) {
         coordinator.askInputViewForCode((code) -> {
-
-            // connect and shit
-            coordinator.askInputViewForInfo(true, true, (handle, password) -> {
-                // give that crap to the server
-            }, () -> {
-                // on cancel
-            });
-        }, (url, port) -> {
-            // THE USER CHOSE TO ENTER A MANUAL URL AND PORT
             new Thread(() -> {
-                Server s = new Server(url, Integer.parseInt(port));
                 try {
-                    boolean[] params = s.connect();
-                    if (!params[0] && !params[1]) {
-                        s.authenticate();
-                        coordinator.hideAddServerView();
-                    }
-                    boolean askForHandle = params[0];
-                    boolean askForPassword = params[1];
-                    getHandleAndPassword(askForHandle, askForPassword, s);
+                    Socket socket = new Socket("141.219.201.62", 13245);
+                    BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                    out.write(code + "\n");
+                    out.flush();
+                    String response = in.readLine();
+                    System.out.print("Central said: " + response);
+                    String[] unparsedSegments = response.split(",");
+                    int length1 = Integer.parseInt(unparsedSegments[0]);
+                    int length2 = Integer.parseInt(unparsedSegments[1]);
+                    int length3 = Integer.parseInt(unparsedSegments[2]);
+                    int lengthOfPrefix = unparsedSegments[0].length() + unparsedSegments[1].length() + unparsedSegments[2].length() + 3;
+
+                    String name = response.substring(lengthOfPrefix, lengthOfPrefix + length1);
+                    String url = response.substring(lengthOfPrefix + length1, lengthOfPrefix + length1 + length2);
+                    String port = response.substring(lengthOfPrefix + length1 + length2);
+
+                    connectToServer(url, port);
                 } catch (IOException ex) {
                     Platform.runLater(() -> {
                         Alert alert = new Alert(AlertType.ERROR);
                         alert.setTitle("Connection Error");
-                        alert.setHeaderText("Could not connect to server");
+                        alert.setHeaderText("Could not connect to Helium central server");
                         alert.setContentText("Verify that you have an internet connection, and that you typed the server address and port correctly.");
 
                         alert.show();
@@ -229,7 +235,36 @@ public class MainViewController implements Initializable {
                     coordinator.hideProgressIndicators();
                 }
             }).start();
+        }, (url, port) -> {
+            // THE USER CHOSE TO ENTER A MANUAL URL AND PORT
+            connectToServer(url, port);
         });
+    }
+
+    private void connectToServer(String url, String port) {
+        new Thread(() -> {
+            Server s = new Server(url, Integer.parseInt(port));
+            try {
+                boolean[] params = s.connect();
+                if (!params[0] && !params[1]) {
+                    s.authenticate();
+                    coordinator.hideAddServerView();
+                }
+                boolean askForHandle = params[0];
+                boolean askForPassword = params[1];
+                getHandleAndPassword(askForHandle, askForPassword, s);
+            } catch (IOException ex) {
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(AlertType.ERROR);
+                    alert.setTitle("Connection Error");
+                    alert.setHeaderText("Could not connect to server");
+                    alert.setContentText("Verify that you have an internet connection, and that you typed the server address and port correctly.");
+
+                    alert.show();
+                });
+                coordinator.hideProgressIndicators();
+            }
+        }).start();
     }
 
     private void getHandleAndPassword(boolean askForHandle, boolean askForPassword, Server s) {
@@ -292,12 +327,12 @@ public class MainViewController implements Initializable {
         messageField.clear();
 
         System.out.println("Send message: " + message);
-        Message m = new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, currentServer.getHandle(), message.getBytes());
+        Message m = new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, currentServer.getHandle(), message);
         currentServer.sendMessage(m);
-        if(m.getId() == 0) {
+        if (m.getContentType() == Message.ContentType.TEXT) {
             addMessageToScreen(m);
         }
-        if(m.getId() == 1) {
+        if (m.getContentType() == Message.ContentType.IMAGE) {
             addImageToScreen(m);
         }
     }
@@ -325,22 +360,23 @@ public class MainViewController implements Initializable {
         messages.getChildren().add(line);
         currentServer.addMessageView(line);
     }
-    
+
     public void addImageToScreen(Message m) {
         try {
-            ByteArrayInputStream in = new ByteArrayInputStream(m.getContent());
+            byte[] imageInByte = new BigInteger(m.getContent(), 16).toByteArray();
+            ByteArrayInputStream in = new ByteArrayInputStream(imageInByte);
             BufferedImage img = ImageIO.read(in);
-            
-        } catch(IOException e) {
+
+        } catch (IOException e) {
             System.out.println(e);
         }
-        
+
     }
-    
+
     public void setCoordinator(UICoordinator coordinator) {
         this.coordinator = coordinator;
     }
-    
+
     @FXML
     private void openSidebar(ActionEvent event) {
         sidebar.translateXProperty().unbind();
@@ -351,7 +387,7 @@ public class MainViewController implements Initializable {
         timeline.getKeyFrames().add(kf);
         timeline.play();
     }
-    
+
     @FXML
     private void closeSidebar(ActionEvent event) {
         sidebar.translateXProperty().unbind();

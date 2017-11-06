@@ -137,6 +137,7 @@ public class InputViewController implements Initializable {
         timeline.getKeyFrames().add(kf);
         timeline.setOnFinished(t -> {
             to.requestFocus();
+            to.translateXProperty().set(0);
             from.translateXProperty().bind(from.widthProperty());
         });
         timeline.play();
