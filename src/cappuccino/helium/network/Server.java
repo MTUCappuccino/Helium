@@ -65,17 +65,19 @@ public class Server {
         	}
         	catch(Exception e) { }
         }
-        try {
-            displayTray(newMessage);
-        } catch (AWTException | MalformedURLException e){
-            System.out.println(e);
+        if(notificationsAllowed == true || (newMessage.getContent().contains("@" + handle + " ") && mentionsAllowed == true)) {
+            try {
+                displayTray(newMessage);
+            } catch (AWTException | MalformedURLException e){
+                System.out.println(e);
+            }
         }
     }
     
     private void displayTray(Message message) throws AWTException, java.net.MalformedURLException {
         SystemTray tray = SystemTray.getSystemTray();
 
-        Image image = Toolkit.getDefaultToolkit().createImage("src\\HeliumLogo.png");
+        Image image = Toolkit.getDefaultToolkit().createImage("src/HeliumLogo.png");
         TrayIcon trayIcon = new TrayIcon(image, "Tray Demo");
         trayIcon.setImageAutoSize(true);
         trayIcon.setToolTip("Helium");

@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -14,6 +15,7 @@ import java.io.OutputStreamWriter;
 import java.math.BigInteger;
 import java.net.Socket;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.ResourceBundle;
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
@@ -52,6 +54,10 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
 
 /**
  * FXML Controller class
@@ -360,17 +366,6 @@ public class MainViewController implements Initializable {
         currentServer.addMessageView(line);
     }
 
-    public void addImageToScreen(Message m) {
-        try {
-            byte[] imageInByte = new BigInteger(m.getContent(), 16).toByteArray();
-            ByteArrayInputStream in = new ByteArrayInputStream(imageInByte);
-            BufferedImage img = ImageIO.read(in);
-
-        } catch (IOException e) {
-            System.out.println(e);
-        }
-
-    }
     public void setCoordinator(UICoordinator coordinator) {
         this.coordinator = coordinator;
     }
@@ -400,7 +395,7 @@ public class MainViewController implements Initializable {
         });
     }
     
-     public void sendImage(ActionEvent event) {
+     public void sendImage(ActionEvent event) throws IOException {
         FileChooser fileChooser = new FileChooser();
              
         FileChooser.ExtensionFilter extFilterJPG = new FileChooser.ExtensionFilter("JPG files (*.jpg)", "*.JPG");
@@ -408,17 +403,61 @@ public class MainViewController implements Initializable {
         fileChooser.getExtensionFilters().addAll(extFilterJPG, extFilterPNG);
               
         File file = fileChooser.showOpenDialog(null);
-                      
+        String imageType = null;              
+        BufferedImage image = null;
             try {
-                BufferedImage bufferedImage = ImageIO.read(file);
+                image = ImageIO.read(file);
             } catch (IOException e) {
                 System.out.println(e);
             }
-          //  Message message = new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, currentServer.getHandle(), (String) bufferedImage);
-
+        ImageInputStream iis = ImageIO.createImageInputStream(file);
+        Iterator<ImageReader> iter = ImageIO.getImageReaders(iis);
+        if(!iter.hasNext()) {
+            throw new RuntimeException("No image");
+        }
+        ImageReader reader = iter.next();
+        imageType = reader.getFormatName();
+        iis.close();
+        String hexImage = imageToHex(image, imageType);
+        Message message = new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, currentServer.getHandle(), hexImage);
+        currentServer.sendMessage(message);
  
     }
-    // public void addImageToScreen(Message m) {
+    //TODO
+    public void addImageToScreen(Message m) {
         
-    //}
+    }
+    
+    public String imageToHex(BufferedImage image, String type) {
+        String hex = null;
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try {
+            ImageIO.write(image, type, bos);
+            byte[] imageBytes = bos.toByteArray();
+            
+            BASE64Encoder encoder = new BASE64Encoder();
+            hex = encoder.encode(imageBytes);
+            
+            bos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return hex;
+    }
+    
+    public BufferedImage hexToImage(String imageString) {
+        BufferedImage image = null;
+        byte[] imageBytes;
+        
+        try {
+            BASE64Decoder decoder = new BASE64Decoder();
+            imageBytes = decoder.decodeBuffer(imageString);
+            ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
+            image = ImageIO.read(bis);
+            bis.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return image;
+    }
 }
