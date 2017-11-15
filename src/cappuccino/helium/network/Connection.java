@@ -82,11 +82,11 @@ public class Connection implements Runnable {
     public void disconnect() {
         try {
 //            sendMessage(new Message(Message.MessageType.CLOSE_CONNECTION, null, null, null));
+            running = false;
             out.flush();
             out.close();
             in.close();
             socket.close();
-            running = false;
         } catch (IOException ex) {
             Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -132,11 +132,19 @@ public class Connection implements Runnable {
             while (running) {
                 String message = in.readLine();
 
+                if (message.isEmpty()) {
+                    continue;
+                }
                 System.out.println("Received message from server: " + message);
 
-                String[] unparsedSegments = message.split(";");
+                String[] unparsedSegments = message.split(",");
 
                 Message.MessageType type = Message.MessageType.values()[Integer.parseInt(unparsedSegments[0])];
+                
+                if (type == Message.MessageType.HEARTBEAT) {
+                    continue;
+                }
+                
                 int id = Integer.parseInt(unparsedSegments[1]);
                 Message.ContentType contentType = Message.ContentType.values()[Integer.parseInt(unparsedSegments[2])];
                 String sender = unparsedSegments[3];
@@ -147,6 +155,9 @@ public class Connection implements Runnable {
                 server.recieveMessage(m);
             }
         } catch (IOException ex) {
+            if (!running) {
+                return;
+            }
             reconnect();
         }
     }

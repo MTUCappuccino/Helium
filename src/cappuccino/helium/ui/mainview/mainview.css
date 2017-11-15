@@ -194,9 +194,9 @@
 }
 
 #close-sidebar-button:hover {
-    -fx-background-color: #EEE;
+    -fx-background-color: #FFFFFF55;
 }
 
 #close-sidebar-button:pressed {
-    -fx-background-color: #DDD;
+    -fx-background-color: #FFFFFF99;
 }

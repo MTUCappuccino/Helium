@@ -12,10 +12,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.math.BigInteger;
 import java.net.Socket;
 import java.net.URL;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
@@ -38,9 +38,13 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
@@ -88,6 +92,18 @@ public class MainViewController implements Initializable {
     private AnchorPane noServersView;
     @FXML
     private AnchorPane sidebar;
+    @FXML
+    private CheckBox allowNotifications;
+    @FXML
+    private CheckBox allowMentions;
+    @FXML
+    private Label sidebarServerName;
+    @FXML
+    private Label sidebarHandle;
+    @FXML
+    private ImageView sidebarImage;
+    @FXML
+    private ImageView image;
 
     private UICoordinator coordinator;
     ObservableList<Server> serverList = FXCollections.observableArrayList();
@@ -108,7 +124,7 @@ public class MainViewController implements Initializable {
             while (c.next()) {
                 if (c.wasAdded()) {
                     for (Server s : c.getAddedSubList()) {
-                        Button b = new Button(s.getName());
+                        Button b = new Button(s.getNameProperty().get());
                         b.setPrefWidth(256);
                         b.setPrefHeight(27);
                         b.getStyleClass().add("sidebar-button");
@@ -133,11 +149,9 @@ public class MainViewController implements Initializable {
                                         if (m.getSenderHandle().equals(s.getHandle())) {
                                             continue; // skip this message because I sent it
                                         }
-                                        if (currentServer == s) {
-                                            Platform.runLater(() -> {
-                                                addMessageToScreen(m);
-                                            });
-                                        }
+                                        Platform.runLater(() -> {
+                                            addMessageToScreen(m, s);
+                                        });
                                     }
                                 }
                             }
@@ -154,14 +168,29 @@ public class MainViewController implements Initializable {
 
         serverNameLabel.textProperty().bind(serverName);
         handleLabel.textProperty().bind(Bindings.concat("@", handle));
+        sidebarServerName.textProperty().bind(serverName);
+        sidebarHandle.textProperty().bind(Bindings.concat("@", handle));
         messageField.promptTextProperty().bind(Bindings.concat("Send message as @", handle));
+        
+        messages.heightProperty().addListener((observable) -> {
+            scrollpane.setVvalue(1.0);
+        });
     }
 
     private void displayServer(Server s) {
-        serverName.set(s.getName());
+        serverName.set(s.getNameProperty().get());
         handle.set(s.getHandle());
+        messages.getChildren().setAll(s.getMessageViews());
+        if (currentServer != null) {
+            allowNotifications.selectedProperty().unbindBidirectional(currentServer.getAllowNotificationsProperty());
+            allowMentions.selectedProperty().unbindBidirectional(currentServer.getAllowAtMentionsProperty());
+        }
+        allowNotifications.selectedProperty().bindBidirectional(s.getAllowNotificationsProperty());
+        allowMentions.selectedProperty().bindBidirectional(s.getAllowAtMentionsProperty());
+        Image image = new Image(s.getIcon().toExternalForm(), 100, 100, false, true);
+        sidebarImage.setImage(image);
+        this.image.setImage(image);
         currentServer = s;
-        messages.getChildren().setAll(currentServer.getMessageViews());
     }
 
     private void switchColors(Button b, Color c) {
@@ -184,7 +213,6 @@ public class MainViewController implements Initializable {
                 double blue = c.getBlue() * frac + currentColor.getBlue() * inverse_blending;
 
                 Color blended = new Color((float) red, (float) green, (float) blue, 1.0);
-                System.out.println(blended.toString());
 
                 b.setStyle("-fx-background-color: " + getColorCode(blended));
                 logoRectangle.setFill(blended);
@@ -335,7 +363,7 @@ public class MainViewController implements Initializable {
         Message m = new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, currentServer.getHandle(), message);
         currentServer.sendMessage(m);
         if (m.getContentType() == Message.ContentType.TEXT) {
-            addMessageToScreen(m);
+            addMessageToScreen(m, currentServer);
         }
         if (m.getContentType() == Message.ContentType.IMAGE) {
             addImageToScreen(m);
@@ -348,7 +376,7 @@ public class MainViewController implements Initializable {
         }
     }
 
-    private void addMessageToScreen(Message m) {
+    private void addMessageToScreen(Message m, Server s) {
         MessageView view = new MessageView();
         view.setMessage(m);
         HBox line = new HBox();
@@ -362,7 +390,9 @@ public class MainViewController implements Initializable {
             line.setAlignment(Pos.CENTER_LEFT);
         }
         line.getChildren().add(view);
-        messages.getChildren().add(line);
+        if (s == currentServer) {
+            messages.getChildren().add(line);
+        }
         currentServer.addMessageView(line);
     }
 
@@ -394,25 +424,57 @@ public class MainViewController implements Initializable {
             sidebar.translateXProperty().bind(sidebar.widthProperty());
         });
     }
-    
-     public void sendImage(ActionEvent event) throws IOException {
+
+    @FXML
+    private void editHandle(ActionEvent event) {
+        TextInputDialog dialog = new TextInputDialog(handle.get());
+        dialog.setTitle("Edit Handle");
+        dialog.setHeaderText("Edit Handle");
+        dialog.setContentText("New handle:");
+
+        // Traditional way to get the response value.
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            System.out.println("Your name: " + result.get());
+        }
+    }
+
+    @FXML
+    private void leaveServer(ActionEvent event) {
+        Message m = new Message(Message.MessageType.LEAVE_SERVER, Message.ContentType.TEXT, handle.get(), "");
+        currentServer.sendMessage(m);
+        currentServer.closeConnection();
+        int index = serverList.indexOf(currentServer);
+        serverList.remove(index);
+        servers.getChildren().remove(index);
+        if (serverList.isEmpty()) {
+            noServersView.setVisible(true);
+            currentServer = null;
+        } else {
+            int i = index - 1 < 0 ? index : index - 1;
+            displayServer(serverList.get(i));
+            switchColors((Button) servers.getChildren().get(i), serverList.get(i).getTheme());
+        }
+    }
+
+    public void sendImage(ActionEvent event) throws IOException {
         FileChooser fileChooser = new FileChooser();
-             
+
         FileChooser.ExtensionFilter extFilterJPG = new FileChooser.ExtensionFilter("JPG files (*.jpg)", "*.JPG");
         FileChooser.ExtensionFilter extFilterPNG = new FileChooser.ExtensionFilter("PNG files (*.png)", "*.PNG");
         fileChooser.getExtensionFilters().addAll(extFilterJPG, extFilterPNG);
-              
+
         File file = fileChooser.showOpenDialog(null);
-        String imageType = null;              
+        String imageType = null;
         BufferedImage image = null;
-            try {
-                image = ImageIO.read(file);
-            } catch (IOException e) {
-                System.out.println(e);
-            }
+        try {
+            image = ImageIO.read(file);
+        } catch (IOException e) {
+            System.out.println(e);
+        }
         ImageInputStream iis = ImageIO.createImageInputStream(file);
         Iterator<ImageReader> iter = ImageIO.getImageReaders(iis);
-        if(!iter.hasNext()) {
+        if (!iter.hasNext()) {
             throw new RuntimeException("No image");
         }
         ImageReader reader = iter.next();
@@ -421,34 +483,35 @@ public class MainViewController implements Initializable {
         String hexImage = imageToHex(image, imageType);
         Message message = new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, currentServer.getHandle(), hexImage);
         currentServer.sendMessage(message);
- 
+
     }
+
     //TODO
     public void addImageToScreen(Message m) {
-        
+
     }
-    
+
     public String imageToHex(BufferedImage image, String type) {
         String hex = null;
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         try {
             ImageIO.write(image, type, bos);
             byte[] imageBytes = bos.toByteArray();
-            
+
             BASE64Encoder encoder = new BASE64Encoder();
             hex = encoder.encode(imageBytes);
-            
+
             bos.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
         return hex;
     }
-    
+
     public BufferedImage hexToImage(String imageString) {
         BufferedImage image = null;
         byte[] imageBytes;
-        
+
         try {
             BASE64Decoder decoder = new BASE64Decoder();
             imageBytes = decoder.decodeBuffer(imageString);
