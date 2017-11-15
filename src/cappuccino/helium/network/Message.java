@@ -39,6 +39,7 @@ public class Message {
     private String senderHandle;
     private long sentTime;
     private String content;
+    private boolean bookmarked;
 
     public Message(MessageType type, ContentType contentType, String senderHandle, String content) {
         this(type, -1, contentType, senderHandle, System.currentTimeMillis(), content);
@@ -99,6 +100,14 @@ public class Message {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public boolean isBookmarked() {
+        return bookmarked;
+    }
+
+    public void setBookmarked(boolean bookmarked) {
+        this.bookmarked = bookmarked;
     }
     
     @Override

@@ -35,6 +35,7 @@ public class Server {
     private String password;
     ObservableList<Message> messages = FXCollections.observableArrayList();
     ObservableList<Node> messageViews = FXCollections.observableArrayList();
+    ObservableList<Node> bookmarkedMessageViews = FXCollections.observableArrayList();
     Connection connection;
 
     public Server(String ip, int port) {
@@ -186,5 +187,9 @@ public class Server {
     
     public ObservableList<Node> getMessageViews() {
         return messageViews;
+    }
+    
+    public ObservableList<Node> getBookmarkedMessageViews() {
+        return bookmarkedMessageViews;
     }
 }

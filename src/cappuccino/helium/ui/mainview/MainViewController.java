@@ -14,6 +14,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -35,11 +36,14 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextInputDialog;
@@ -105,12 +109,19 @@ public class MainViewController implements Initializable {
     @FXML
     private ImageView image;
 
+    private ContextMenu contextMenu;
+    private MenuItem bookmark;
+    private Message contextMenuOpenOnMessage;
+    private Node contextMenuOpenOnView;
+    private HashMap<Message, Node> bookmarkedViews;
+
     private UICoordinator coordinator;
     ObservableList<Server> serverList = FXCollections.observableArrayList();
 
     private Server currentServer = null;
     private Button currentButton = null;
     private Color currentColor = Color.BLACK;
+    private boolean showingBookmarked;
 
     private StringProperty serverName = new SimpleStringProperty();
     private StringProperty handle = new SimpleStringProperty();
@@ -150,7 +161,7 @@ public class MainViewController implements Initializable {
                                             continue; // skip this message because I sent it
                                         }
                                         Platform.runLater(() -> {
-                                            addMessageToScreen(m, s);
+                                            addMessageToScreen(m, s, messages.getChildren());
                                         });
                                     }
                                 }
@@ -171,10 +182,37 @@ public class MainViewController implements Initializable {
         sidebarServerName.textProperty().bind(serverName);
         sidebarHandle.textProperty().bind(Bindings.concat("@", handle));
         messageField.promptTextProperty().bind(Bindings.concat("Send message as @", handle));
-        
+
         messages.heightProperty().addListener((observable) -> {
             scrollpane.setVvalue(1.0);
         });
+
+        bookmarkedViews = new HashMap<>();
+
+        contextMenu = new ContextMenu();
+        bookmark = new MenuItem("Bookmark", new ImageView(new Image(getClass().getResource("../images/bookmark_black.png").toString(), 25, 25, true, true)));
+        MenuItem edit = new MenuItem("Edit Message", new ImageView(new Image(getClass().getResource("../images/edit.png").toString(), 25, 25, true, true)));
+        MenuItem delete = new MenuItem("Delete Message", new ImageView(new Image(getClass().getResource("../images/delete.png").toString(), 25, 25, true, true)));
+        bookmark.setOnAction((event) -> {
+            if (contextMenuOpenOnMessage.isBookmarked()) {
+                contextMenuOpenOnMessage.setBookmarked(false);
+                currentServer.getBookmarkedMessageViews().remove(bookmarkedViews.remove(contextMenuOpenOnMessage));
+                if (showingBookmarked) {
+                    messages.getChildren().setAll(currentServer.getBookmarkedMessageViews());
+                }
+            } else {
+                contextMenuOpenOnMessage.setBookmarked(true);
+                Node n = addMessageToScreen(contextMenuOpenOnMessage, null, currentServer.getBookmarkedMessageViews());
+                bookmarkedViews.put(contextMenuOpenOnMessage, n);
+            }
+        });
+        edit.setOnAction((event) -> {
+
+        });
+        delete.setOnAction((event) -> {
+
+        });
+        contextMenu.getItems().addAll(bookmark, edit, delete);
     }
 
     private void displayServer(Server s) {
@@ -187,10 +225,13 @@ public class MainViewController implements Initializable {
         }
         allowNotifications.selectedProperty().bindBidirectional(s.getAllowNotificationsProperty());
         allowMentions.selectedProperty().bindBidirectional(s.getAllowAtMentionsProperty());
-        Image image = new Image(s.getIcon().toExternalForm(), 100, 100, false, true);
-        sidebarImage.setImage(image);
-        this.image.setImage(image);
+        if (s.getIcon() != null) {
+            Image image = new Image(s.getIcon().toExternalForm(), 100, 100, false, true);
+            sidebarImage.setImage(image);
+            this.image.setImage(image);
+        }
         currentServer = s;
+        showingBookmarked = false;
     }
 
     private void switchColors(Button b, Color c) {
@@ -363,7 +404,7 @@ public class MainViewController implements Initializable {
         Message m = new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, currentServer.getHandle(), message);
         currentServer.sendMessage(m);
         if (m.getContentType() == Message.ContentType.TEXT) {
-            addMessageToScreen(m, currentServer);
+            addMessageToScreen(m, currentServer, messages.getChildren());
         }
         if (m.getContentType() == Message.ContentType.IMAGE) {
             addImageToScreen(m);
@@ -376,7 +417,7 @@ public class MainViewController implements Initializable {
         }
     }
 
-    private void addMessageToScreen(Message m, Server s) {
+    private Node addMessageToScreen(Message m, Server s, ObservableList list) {
         MessageView view = new MessageView();
         view.setMessage(m);
         HBox line = new HBox();
@@ -389,11 +430,24 @@ public class MainViewController implements Initializable {
             view.setColor(Color.valueOf("lightgray"));
             line.setAlignment(Pos.CENTER_LEFT);
         }
+        view.setOnContextMenuRequested((e) -> {
+            contextMenu.show(view, e.getScreenX(), e.getScreenY());
+            contextMenuOpenOnMessage = m;
+            contextMenuOpenOnView = line;
+            if (m.isBookmarked()) {
+                bookmark.setText("Unbookmark");
+            } else {
+                bookmark.setText("Bookmark");
+            }
+        });
         line.getChildren().add(view);
-        if (s == currentServer) {
-            messages.getChildren().add(line);
+        if (s == currentServer || s == null) {
+            list.add(line);
         }
-        currentServer.addMessageView(line);
+        if (s != null) {
+            s.addMessageView(line);
+        }
+        return line;
     }
 
     public void setCoordinator(UICoordinator coordinator) {
@@ -455,6 +509,16 @@ public class MainViewController implements Initializable {
             displayServer(serverList.get(i));
             switchColors((Button) servers.getChildren().get(i), serverList.get(i).getTheme());
         }
+    }
+
+    @FXML
+    private void showBookmarked(ActionEvent event) {
+        if (showingBookmarked) {
+            messages.getChildren().setAll(currentServer.getMessageViews());
+        } else {
+            messages.getChildren().setAll(currentServer.getBookmarkedMessageViews());
+        }
+        showingBookmarked = !showingBookmarked;
     }
 
     public void sendImage(ActionEvent event) throws IOException {
