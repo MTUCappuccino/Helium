@@ -12,10 +12,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.math.BigInteger;
 import java.net.Socket;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
@@ -35,12 +36,19 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
@@ -88,6 +96,24 @@ public class MainViewController implements Initializable {
     private AnchorPane noServersView;
     @FXML
     private AnchorPane sidebar;
+    @FXML
+    private CheckBox allowNotifications;
+    @FXML
+    private CheckBox allowMentions;
+    @FXML
+    private Label sidebarServerName;
+    @FXML
+    private Label sidebarHandle;
+    @FXML
+    private ImageView sidebarImage;
+    @FXML
+    private ImageView image;
+
+    private ContextMenu contextMenu;
+    private MenuItem bookmark;
+    private Message contextMenuOpenOnMessage;
+    private Node contextMenuOpenOnView;
+    private HashMap<Message, Node> bookmarkedViews;
 
     private UICoordinator coordinator;
     ObservableList<Server> serverList = FXCollections.observableArrayList();
@@ -95,6 +121,7 @@ public class MainViewController implements Initializable {
     private Server currentServer = null;
     private Button currentButton = null;
     private Color currentColor = Color.BLACK;
+    private boolean showingBookmarked;
 
     private StringProperty serverName = new SimpleStringProperty();
     private StringProperty handle = new SimpleStringProperty();
@@ -108,7 +135,7 @@ public class MainViewController implements Initializable {
             while (c.next()) {
                 if (c.wasAdded()) {
                     for (Server s : c.getAddedSubList()) {
-                        Button b = new Button(s.getName());
+                        Button b = new Button(s.getNameProperty().get());
                         b.setPrefWidth(256);
                         b.setPrefHeight(27);
                         b.getStyleClass().add("sidebar-button");
@@ -133,11 +160,9 @@ public class MainViewController implements Initializable {
                                         if (m.getSenderHandle().equals(s.getHandle())) {
                                             continue; // skip this message because I sent it
                                         }
-                                        if (currentServer == s) {
-                                            Platform.runLater(() -> {
-                                                addMessageToScreen(m);
-                                            });
-                                        }
+                                        Platform.runLater(() -> {
+                                            addMessageToScreen(m, s, messages.getChildren());
+                                        });
                                     }
                                 }
                             }
@@ -154,14 +179,59 @@ public class MainViewController implements Initializable {
 
         serverNameLabel.textProperty().bind(serverName);
         handleLabel.textProperty().bind(Bindings.concat("@", handle));
+        sidebarServerName.textProperty().bind(serverName);
+        sidebarHandle.textProperty().bind(Bindings.concat("@", handle));
         messageField.promptTextProperty().bind(Bindings.concat("Send message as @", handle));
+
+        messages.heightProperty().addListener((observable) -> {
+            scrollpane.setVvalue(1.0);
+        });
+
+        bookmarkedViews = new HashMap<>();
+
+        contextMenu = new ContextMenu();
+        bookmark = new MenuItem("Bookmark", new ImageView(new Image(getClass().getResource("../images/bookmark_black.png").toString(), 25, 25, true, true)));
+        MenuItem edit = new MenuItem("Edit Message", new ImageView(new Image(getClass().getResource("../images/edit.png").toString(), 25, 25, true, true)));
+        MenuItem delete = new MenuItem("Delete Message", new ImageView(new Image(getClass().getResource("../images/delete.png").toString(), 25, 25, true, true)));
+        bookmark.setOnAction((event) -> {
+            if (contextMenuOpenOnMessage.isBookmarked()) {
+                contextMenuOpenOnMessage.setBookmarked(false);
+                currentServer.getBookmarkedMessageViews().remove(bookmarkedViews.remove(contextMenuOpenOnMessage));
+                if (showingBookmarked) {
+                    messages.getChildren().setAll(currentServer.getBookmarkedMessageViews());
+                }
+            } else {
+                contextMenuOpenOnMessage.setBookmarked(true);
+                Node n = addMessageToScreen(contextMenuOpenOnMessage, null, currentServer.getBookmarkedMessageViews());
+                bookmarkedViews.put(contextMenuOpenOnMessage, n);
+            }
+        });
+        edit.setOnAction((event) -> {
+
+        });
+        delete.setOnAction((event) -> {
+
+        });
+        contextMenu.getItems().addAll(bookmark, edit, delete);
     }
 
     private void displayServer(Server s) {
-        serverName.set(s.getName());
+        serverName.set(s.getNameProperty().get());
         handle.set(s.getHandle());
+        messages.getChildren().setAll(s.getMessageViews());
+        if (currentServer != null) {
+            allowNotifications.selectedProperty().unbindBidirectional(currentServer.getAllowNotificationsProperty());
+            allowMentions.selectedProperty().unbindBidirectional(currentServer.getAllowAtMentionsProperty());
+        }
+        allowNotifications.selectedProperty().bindBidirectional(s.getAllowNotificationsProperty());
+        allowMentions.selectedProperty().bindBidirectional(s.getAllowAtMentionsProperty());
+        if (s.getIcon() != null) {
+            Image image = new Image(s.getIcon().toExternalForm(), 100, 100, false, true);
+            sidebarImage.setImage(image);
+            this.image.setImage(image);
+        }
         currentServer = s;
-        messages.getChildren().setAll(currentServer.getMessageViews());
+        showingBookmarked = false;
     }
 
     private void switchColors(Button b, Color c) {
@@ -184,7 +254,6 @@ public class MainViewController implements Initializable {
                 double blue = c.getBlue() * frac + currentColor.getBlue() * inverse_blending;
 
                 Color blended = new Color((float) red, (float) green, (float) blue, 1.0);
-                System.out.println(blended.toString());
 
                 b.setStyle("-fx-background-color: " + getColorCode(blended));
                 logoRectangle.setFill(blended);
@@ -335,7 +404,7 @@ public class MainViewController implements Initializable {
         Message m = new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, currentServer.getHandle(), message);
         currentServer.sendMessage(m);
         if (m.getContentType() == Message.ContentType.TEXT) {
-            addMessageToScreen(m);
+            addMessageToScreen(m, currentServer, messages.getChildren());
         }
         if (m.getContentType() == Message.ContentType.IMAGE) {
             addImageToScreen(m);
@@ -348,7 +417,7 @@ public class MainViewController implements Initializable {
         }
     }
 
-    private void addMessageToScreen(Message m) {
+    private Node addMessageToScreen(Message m, Server s, ObservableList list) {
         MessageView view = new MessageView();
         view.setMessage(m);
         HBox line = new HBox();
@@ -361,9 +430,24 @@ public class MainViewController implements Initializable {
             view.setColor(Color.valueOf("lightgray"));
             line.setAlignment(Pos.CENTER_LEFT);
         }
+        view.setOnContextMenuRequested((e) -> {
+            contextMenu.show(view, e.getScreenX(), e.getScreenY());
+            contextMenuOpenOnMessage = m;
+            contextMenuOpenOnView = line;
+            if (m.isBookmarked()) {
+                bookmark.setText("Unbookmark");
+            } else {
+                bookmark.setText("Bookmark");
+            }
+        });
         line.getChildren().add(view);
-        messages.getChildren().add(line);
-        currentServer.addMessageView(line);
+        if (s == currentServer || s == null) {
+            list.add(line);
+        }
+        if (s != null) {
+            s.addMessageView(line);
+        }
+        return line;
     }
 
     public void setCoordinator(UICoordinator coordinator) {
@@ -394,25 +478,67 @@ public class MainViewController implements Initializable {
             sidebar.translateXProperty().bind(sidebar.widthProperty());
         });
     }
-    
-     public void sendImage(ActionEvent event) throws IOException {
+
+    @FXML
+    private void editHandle(ActionEvent event) {
+        TextInputDialog dialog = new TextInputDialog(handle.get());
+        dialog.setTitle("Edit Handle");
+        dialog.setHeaderText("Edit Handle");
+        dialog.setContentText("New handle:");
+
+        // Traditional way to get the response value.
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            System.out.println("Your name: " + result.get());
+        }
+    }
+
+    @FXML
+    private void leaveServer(ActionEvent event) {
+        Message m = new Message(Message.MessageType.LEAVE_SERVER, Message.ContentType.TEXT, handle.get(), "");
+        currentServer.sendMessage(m);
+        currentServer.closeConnection();
+        int index = serverList.indexOf(currentServer);
+        serverList.remove(index);
+        servers.getChildren().remove(index);
+        if (serverList.isEmpty()) {
+            noServersView.setVisible(true);
+            currentServer = null;
+        } else {
+            int i = index - 1 < 0 ? index : index - 1;
+            displayServer(serverList.get(i));
+            switchColors((Button) servers.getChildren().get(i), serverList.get(i).getTheme());
+        }
+    }
+
+    @FXML
+    private void showBookmarked(ActionEvent event) {
+        if (showingBookmarked) {
+            messages.getChildren().setAll(currentServer.getMessageViews());
+        } else {
+            messages.getChildren().setAll(currentServer.getBookmarkedMessageViews());
+        }
+        showingBookmarked = !showingBookmarked;
+    }
+
+    public void sendImage(ActionEvent event) throws IOException {
         FileChooser fileChooser = new FileChooser();
-             
+
         FileChooser.ExtensionFilter extFilterJPG = new FileChooser.ExtensionFilter("JPG files (*.jpg)", "*.JPG");
         FileChooser.ExtensionFilter extFilterPNG = new FileChooser.ExtensionFilter("PNG files (*.png)", "*.PNG");
         fileChooser.getExtensionFilters().addAll(extFilterJPG, extFilterPNG);
-              
+
         File file = fileChooser.showOpenDialog(null);
-        String imageType = null;              
+        String imageType = null;
         BufferedImage image = null;
-            try {
-                image = ImageIO.read(file);
-            } catch (IOException e) {
-                System.out.println(e);
-            }
+        try {
+            image = ImageIO.read(file);
+        } catch (IOException e) {
+            System.out.println(e);
+        }
         ImageInputStream iis = ImageIO.createImageInputStream(file);
         Iterator<ImageReader> iter = ImageIO.getImageReaders(iis);
-        if(!iter.hasNext()) {
+        if (!iter.hasNext()) {
             throw new RuntimeException("No image");
         }
         ImageReader reader = iter.next();
@@ -421,34 +547,35 @@ public class MainViewController implements Initializable {
         String hexImage = imageToHex(image, imageType);
         Message message = new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, currentServer.getHandle(), hexImage);
         currentServer.sendMessage(message);
- 
+
     }
+
     //TODO
     public void addImageToScreen(Message m) {
-        
+
     }
-    
+
     public String imageToHex(BufferedImage image, String type) {
         String hex = null;
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         try {
             ImageIO.write(image, type, bos);
             byte[] imageBytes = bos.toByteArray();
-            
+
             BASE64Encoder encoder = new BASE64Encoder();
             hex = encoder.encode(imageBytes);
-            
+
             bos.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
         return hex;
     }
-    
+
     public BufferedImage hexToImage(String imageString) {
         BufferedImage image = null;
         byte[] imageBytes;
-        
+
         try {
             BASE64Decoder decoder = new BASE64Decoder();
             imageBytes = decoder.decodeBuffer(imageString);

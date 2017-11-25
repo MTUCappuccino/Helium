@@ -15,7 +15,7 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane id="AnchorPane" prefHeight="596.0" prefWidth="901.0" stylesheets="@mainview.css" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cappuccino.helium.ui.mainview.MainViewController">
+<AnchorPane id="AnchorPane" prefHeight="596.0" prefWidth="901.0" stylesheets="@mainview.css" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cappuccino.helium.ui.mainview.MainViewController">
     <children>
         <VBox fx:id="servers" alignment="TOP_CENTER" prefHeight="596.0" prefWidth="239.0" spacing="6.0" style="-fx-background-color: #404040;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
             <padding>
@@ -61,46 +61,26 @@
                            <padding>
                               <Insets bottom="10.0" top="10.0" />
                            </padding>
-                           <children>
-                              <AnchorPane fx:id="noServersView" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: white;">
-                                 <children>
-                                    <Label layoutX="105.0" layoutY="161.0" style="-fx-alignment: center;" text="You don't have any servers!" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="161.0">
-                                       <font>
-                                          <Font name="Arial Bold" size="34.0" />
-                                       </font>
-                                    </Label>
-                                    <Label layoutX="222.0" layoutY="211.0" style="-fx-alignment: center;" text="Why don't you add one now?" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
-                                       <font>
-                                          <Font name="Arial" size="17.0" />
-                                       </font>
-                                    </Label>
-                                    <HBox alignment="CENTER" layoutX="252.0" layoutY="278.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="278.0">
-                                       <children>
-                                          <Button id="next-button" mnemonicParsing="false" onAction="#addServer" style="-fx-alignment: center;" text="Add a Server" />
-                                       </children>
-                                    </HBox>
-                                 </children>
-                              </AnchorPane>
-                           </children>
                         </VBox>
                      </content>
                   </ScrollPane>
-                  <Button id="image-button" contentDisplay="GRAPHIC_ONLY" disable="true" layoutX="534.0" layoutY="441.0" mnemonicParsing="false" onAction="#sendImage" prefHeight="34.0" prefWidth="38.0" text="Image">
+                  <Button id="send-button" fx:id="sendButton1" contentDisplay="GRAPHIC_ONLY" layoutX="534.0" layoutY="436.0" mnemonicParsing="false" onAction="#sendImage" prefHeight="50.0" prefWidth="50.0" text="Button" AnchorPane.bottomAnchor="32.0" AnchorPane.rightAnchor="62.0">
                      <graphic>
-                        <ImageView fitHeight="33.0" fitWidth="31.0" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fitHeight="34.0" fitWidth="33.0" layoutX="16.0" layoutY="10.0" pickOnBounds="true" preserveRatio="true">
                            <image>
-                              <Image url="@../images/add.png" />
+                              <Image url="@../images/image.png" />
                            </image>
                         </ImageView>
-                     </graphic></Button>
+                     </graphic>
+                  </Button>
                     </children>
                 </AnchorPane>
-            <Label fx:id="serverNameLabel" layoutX="14.0" layoutY="11.0" text="Test Server 1" textFill="WHITE">
+            <Label fx:id="serverNameLabel" layoutX="64.0" layoutY="11.0" text="Test Server 1" textFill="WHITE">
                <font>
                   <Font name="System Bold" size="24.0" />
                </font>
             </Label>
-            <Label fx:id="handleLabel" layoutX="14.0" layoutY="41.0" text="\@handle_name" textFill="WHITE" />
+            <Label fx:id="handleLabel" layoutX="64.0" layoutY="41.0" text="\@handle_name" textFill="WHITE" />
             <Button id="close-sidebar-button" contentDisplay="GRAPHIC_ONLY" layoutX="604.0" layoutY="13.0" mnemonicParsing="false" onAction="#openSidebar" prefHeight="44.0" prefWidth="44.0" style="-fx-padding: 0;" text="Button" AnchorPane.rightAnchor="14.0">
                <graphic>
                   <ImageView fitHeight="30.0" fitWidth="30.0" layoutX="16.0" layoutY="10.0" pickOnBounds="true" preserveRatio="true">
@@ -110,7 +90,7 @@
                   </ImageView>
                </graphic>
             </Button>
-            <Button id="close-sidebar-button" contentDisplay="GRAPHIC_ONLY" layoutX="557.0" layoutY="13.0" mnemonicParsing="false" prefHeight="44.0" prefWidth="44.0" style="-fx-padding: 0;" text="Button" AnchorPane.rightAnchor="61.0">
+            <Button id="close-sidebar-button" contentDisplay="GRAPHIC_ONLY" layoutX="557.0" layoutY="13.0" mnemonicParsing="false" onAction="#showBookmarked" prefHeight="44.0" prefWidth="44.0" style="-fx-padding: 0;" text="Button" AnchorPane.rightAnchor="61.0">
                <graphic>
                   <ImageView fitHeight="30.0" fitWidth="30.0" layoutX="16.0" layoutY="10.0" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -128,46 +108,47 @@
                   </ImageView>
                </graphic>
             </Button>
+            <ImageView fx:id="image" fitHeight="50.0" fitWidth="50.0" layoutX="8.0" layoutY="10.0" pickOnBounds="true" preserveRatio="true" />
             <AnchorPane fx:id="sidebar" prefHeight="200.0" prefWidth="400.0" style="-fx-background-color: #F9F9F9; -fx-border-color: #CCC; -fx-border-width: 0 0 0 1;" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                <children>
-                  <Label layoutX="135.0" layoutY="115.0" style="-fx-alignment: center;" text="Server Name" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="115.0">
+                  <Label fx:id="sidebarServerName" layoutX="135.0" layoutY="115.0" style="-fx-alignment: center;" text="Server Name" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="115.0">
                      <font>
                         <Font size="23.0" />
                      </font>
                   </Label>
-                  <Label layoutX="159.0" layoutY="149.0" style="-fx-alignment: center;" text="\@handle_name" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                  <Label fx:id="sidebarHandle" layoutX="159.0" layoutY="149.0" style="-fx-alignment: center;" text="\@handle_name" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
                   <HBox alignment="CENTER" layoutX="39.0" layoutY="191.0" spacing="30.0" AnchorPane.bottomAnchor="358.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
                      <children>
-                        <Button id="next-button" focusTraversable="false" mnemonicParsing="false" text="Edit Handle" />
-                        <Button id="red-button" focusTraversable="false" mnemonicParsing="false" text="Leave Server" />
+                        <Button id="next-button" focusTraversable="false" mnemonicParsing="false" onAction="#editHandle" text="Edit Handle" />
+                        <Button id="red-button" focusTraversable="false" mnemonicParsing="false" onAction="#leaveServer" text="Leave Server" />
                      </children>
                   </HBox>
-                  <ImageView fitHeight="100.0" fitWidth="100.0" layoutX="150.0" layoutY="15.0" pickOnBounds="true" preserveRatio="true" style="-fx-border-radius: 20;" />
+                  <ImageView fx:id="sidebarImage" fitHeight="100.0" fitWidth="100.0" layoutX="150.0" layoutY="15.0" pickOnBounds="true" preserveRatio="true" style="-fx-border-radius: 50%;" />
                   <Separator layoutX="14.0" layoutY="265.0" prefHeight="3.0" prefWidth="373.0" />
                   <Label layoutX="14.0" layoutY="276.0" text="Notification Preferences">
                      <font>
                         <Font name="System Bold" size="12.0" />
                      </font>
                   </Label>
-                  <CheckBox focusTraversable="false" layoutX="14.0" layoutY="310.0" mnemonicParsing="false" selected="true" text="Allow All Notifcations" />
-                  <CheckBox focusTraversable="false" layoutX="14.0" layoutY="340.0" mnemonicParsing="false" selected="true" text="Allow @mentions" />
-                  <Separator layoutX="14.0" layoutY="378.0" prefHeight="3.0" prefWidth="373.0" />
-                  <Label layoutX="13.0" layoutY="389.0" text="Server Info">
+                  <CheckBox fx:id="allowNotifications" focusTraversable="false" layoutX="14.0" layoutY="310.0" mnemonicParsing="false" selected="true" text="Allow All Notifcations" />
+                  <CheckBox fx:id="allowMentions" focusTraversable="false" layoutX="14.0" layoutY="340.0" mnemonicParsing="false" selected="true" text="Allow @mentions" />
+                  <Separator layoutX="14.0" layoutY="378.0" prefHeight="3.0" prefWidth="373.0" visible="false" />
+                  <Label layoutX="13.0" layoutY="389.0" text="Server Info" visible="false">
                      <font>
                         <Font name="System Bold" size="12.0" />
                      </font>
                   </Label>
                   <VBox layoutX="13.0" layoutY="418.0" spacing="5.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0">
                      <children>
-                        <Label text="Public: yes" />
-                        <Label text="Anonymous: no" />
-                        <Label text="Password protected: yes" />
-                        <Label text="Theme Color: #FF0000" />
-                        <Label text="Server Software Version: v0.2.1" />
-                        <Label text="Server Maintainer: @some_handle" />
+                        <Label text="Public: yes" visible="false" />
+                        <Label text="Anonymous: no" visible="false" />
+                        <Label text="Password protected: yes" visible="false" />
+                        <Label text="Theme Color: #FF0000" visible="false" />
+                        <Label text="Server Software Version: v0.2.1" visible="false" />
+                        <Label text="Server Maintainer: @some_handle" visible="false" />
                      </children>
                   </VBox>
-                  <Button id="close-sidebar-button" contentDisplay="GRAPHIC_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#closeSidebar" prefHeight="44.0" prefWidth="44.0" style="-fx-background-radius: 50%; -fx-padding: 0;" text="Button" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="5.0">
+                  <Button id="send-button" contentDisplay="GRAPHIC_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#closeSidebar" prefHeight="44.0" prefWidth="44.0" style="-fx-background-radius: 50%; -fx-padding: 0;" text="Button" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="5.0">
                      <graphic>
                         <ImageView fitHeight="36.0" fitWidth="34.0" layoutX="16.0" layoutY="10.0" pickOnBounds="true" preserveRatio="true">
                            <image>
@@ -176,6 +157,25 @@
                         </ImageView>
                      </graphic>
                   </Button>
+               </children>
+            </AnchorPane>
+            <AnchorPane fx:id="noServersView" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: white;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+               <children>
+                  <Label layoutX="105.0" layoutY="161.0" style="-fx-alignment: center;" text="You don't have any servers!" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="161.0">
+                     <font>
+                        <Font name="Arial Bold" size="34.0" />
+                     </font>
+                  </Label>
+                  <Label layoutX="222.0" layoutY="211.0" style="-fx-alignment: center;" text="Why don't you add one now?" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                     <font>
+                        <Font name="Arial" size="17.0" />
+                     </font>
+                  </Label>
+                  <HBox alignment="CENTER" layoutX="252.0" layoutY="278.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="278.0">
+                     <children>
+                        <Button id="next-button" mnemonicParsing="false" onAction="#addServer" style="-fx-alignment: center;" text="Add a Server" />
+                     </children>
+                  </HBox>
                </children>
             </AnchorPane>
             </children>

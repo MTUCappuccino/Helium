@@ -1,7 +1,10 @@
 package cappuccino.helium.ui.mainview;
 
 import cappuccino.helium.network.Message;
+import static com.sun.org.apache.xalan.internal.lib.ExsltDatetime.time;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
@@ -45,7 +48,7 @@ public class MessageView extends AnchorPane {
     
     public void setMessage(Message m) {
         this.text.setText(new String(m.getContent()));
-        this.handle.setText(m.getSenderHandle());
+        this.handle.setText(m.getSenderHandle() + " - " + new SimpleDateFormat("hh:mm aa").format(new Date(m.getSentTime())));
     }
     
     public void setLeft() {

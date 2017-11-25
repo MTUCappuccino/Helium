@@ -8,7 +8,7 @@ public class Message {
     
     public enum MessageType {
         NEW_MESSAGE(0), EDIT_MESSAGE(1), DELETE_MESSAGE(2), CLOSE_CONNECTION(3),
-        LEAVE_SERVER(4);
+        LEAVE_SERVER(4), UPDATE_SERVER_DATA(5), HEARTBEAT(6);
         
         private final int value;
         private MessageType(int value) {
@@ -39,6 +39,7 @@ public class Message {
     private String senderHandle;
     private long sentTime;
     private String content;
+    private boolean bookmarked;
 
     public Message(MessageType type, ContentType contentType, String senderHandle, String content) {
         this(type, -1, contentType, senderHandle, System.currentTimeMillis(), content);
@@ -100,9 +101,17 @@ public class Message {
     public void setContent(String content) {
         this.content = content;
     }
+
+    public boolean isBookmarked() {
+        return bookmarked;
+    }
+
+    public void setBookmarked(boolean bookmarked) {
+        this.bookmarked = bookmarked;
+    }
     
     @Override
     public String toString() {
-        return String.valueOf(type.getValue()) + ";" + String.valueOf(id) + ";" + String.valueOf(contentType.getValue()) + ";" + senderHandle + ";" + content + "\n";
+        return String.valueOf(type.getValue()) + "," + String.valueOf(id) + "," + String.valueOf(contentType.getValue()) + "," + senderHandle + "," + content + "\n";
     }
 }

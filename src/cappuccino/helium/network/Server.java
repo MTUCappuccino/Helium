@@ -9,6 +9,10 @@ import java.awt.TrayIcon.MessageType;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -20,23 +24,27 @@ import javax.sound.sampled.Clip;
 
 public class Server {
 
-    private String name;
+    private StringProperty name;
     private Color theme;
     private URL icon;
     private String ip;
     private int port;
-    private boolean notificationsAllowed = true;
-    private boolean mentionsAllowed = true;
+    private BooleanProperty notificationsAllowed;
+    private BooleanProperty mentionsAllowed;
     private String handle;
     private String password;
     ObservableList<Message> messages = FXCollections.observableArrayList();
     ObservableList<Node> messageViews = FXCollections.observableArrayList();
+    ObservableList<Node> bookmarkedMessageViews = FXCollections.observableArrayList();
     Connection connection;
 
     public Server(String ip, int port) {
         this.ip = ip;
         this.port = port;
         connection = new Connection(this);
+        name = new SimpleStringProperty("");
+        notificationsAllowed = new SimpleBooleanProperty(true);
+        mentionsAllowed = new SimpleBooleanProperty(true);
     }
 
     public boolean[] connect() throws IOException {
@@ -54,7 +62,7 @@ public class Server {
 
     public void recieveMessage(Message newMessage) {
         messages.add(newMessage);
-        if(notificationsAllowed == true) {
+        if(notificationsAllowed.get()) {
             try{
                 AudioInputStream audioInputStream;
                 audioInputStream = AudioSystem.getAudioInputStream(
@@ -65,7 +73,7 @@ public class Server {
         	}
         	catch(Exception e) { }
         }
-        if(notificationsAllowed == true || (newMessage.getContent().contains("@" + handle + " ") && mentionsAllowed == true)) {
+        if(notificationsAllowed.get() || (newMessage.getContent().contains("@" + handle + " ") && mentionsAllowed.get())) {
             try {
                 displayTray(newMessage);
             } catch (AWTException | MalformedURLException e){
@@ -93,12 +101,12 @@ public class Server {
         return port;
     }
 
-    public String getName() {
+    public StringProperty getNameProperty() {
         return name;
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name.set(name);
     }
 
     public Color getTheme() {
@@ -134,19 +142,27 @@ public class Server {
     }
 
     public void muteServer() {
-        notificationsAllowed = false;
+        notificationsAllowed.set(false);
     }
     
     public void unmuteServer() {
-        notificationsAllowed = true;
+        notificationsAllowed.set(true);
     }
     
     public void muteMentions() {
-        mentionsAllowed = false;
+        mentionsAllowed.set(false);
     }
     
     public void unmuteMentions() {
-        mentionsAllowed = true;
+        mentionsAllowed.set(true);
+    }
+    
+    public BooleanProperty getAllowNotificationsProperty() {
+        return notificationsAllowed;
+    }
+    
+    public BooleanProperty getAllowAtMentionsProperty() {
+        return mentionsAllowed;
     }
     
     public ObservableList<Message> getMessages() {
@@ -171,5 +187,9 @@ public class Server {
     
     public ObservableList<Node> getMessageViews() {
         return messageViews;
+    }
+    
+    public ObservableList<Node> getBookmarkedMessageViews() {
+        return bookmarkedMessageViews;
     }
 }
