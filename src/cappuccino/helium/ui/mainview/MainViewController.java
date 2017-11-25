@@ -407,7 +407,7 @@ public class MainViewController implements Initializable {
             addMessageToScreen(m, currentServer, messages.getChildren());
         }
         if (m.getContentType() == Message.ContentType.IMAGE) {
-            addImageToScreen(m);
+            addImageToScreen(m, currentServer, messages.getChildren());
         }
     }
 
@@ -521,6 +521,7 @@ public class MainViewController implements Initializable {
         showingBookmarked = !showingBookmarked;
     }
 
+    @FXML
     public void sendImage(ActionEvent event) throws IOException {
         FileChooser fileChooser = new FileChooser();
 
@@ -545,14 +546,42 @@ public class MainViewController implements Initializable {
         imageType = reader.getFormatName();
         iis.close();
         String hexImage = imageToHex(image, imageType);
-        Message message = new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, currentServer.getHandle(), hexImage);
+        Message message = new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.IMAGE, currentServer.getHandle(), hexImage);
         currentServer.sendMessage(message);
-
+        addImageToScreen(message, currentServer, messages.getChildren());
     }
 
     //TODO
-    public void addImageToScreen(Message m) {
-
+    public Node addImageToScreen(Message m, Server s, ObservableList list) {
+        ImageMessage view = new ImageMessage();
+        view.setImage(m);
+        HBox line = new HBox();
+        if (m.getSenderHandle().equals(currentServer.getHandle())) {
+            view.setColor(currentServer.getTheme());
+            line.setAlignment(Pos.CENTER_RIGHT);
+        } else {
+            view.setColor(Color.valueOf("lightgray"));
+            line.setAlignment(Pos.CENTER_LEFT);
+        }
+        view.setOnContextMenuRequested((e) -> {
+            contextMenu.show(view, e.getScreenX(), e.getScreenY());
+            contextMenuOpenOnMessage = m;
+            contextMenuOpenOnView = line;
+            if (m.isBookmarked()) {
+                bookmark.setText("Unbookmark");
+            } else {
+                bookmark.setText("Bookmark");
+            }
+        });
+        line.getChildren().add(view);
+        if (s == currentServer || s == null) {
+            list.add(line);
+        }
+        if (s != null) {
+            s.addMessageView(line);
+        }
+        return line;
+        
     }
 
     public String imageToHex(BufferedImage image, String type) {

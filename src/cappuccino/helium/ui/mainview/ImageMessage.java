@@ -24,7 +24,7 @@ import sun.misc.BASE64Decoder;
  *
  * @author silvr
  */
-public class ImageView extends AnchorPane {
+public class ImageMessage extends AnchorPane {
     
     @FXML
     private Image image;
@@ -37,7 +37,7 @@ public class ImageView extends AnchorPane {
     @FXML
     private Polygon mainShape;
     
-    public ImageView() {
+    public ImageMessage() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("ImageView.fxml"));
         fxmlLoader.setRoot(this);
         fxmlLoader.setController(this);
@@ -87,3 +87,4 @@ public class ImageView extends AnchorPane {
         return image;
     }
 }
+
