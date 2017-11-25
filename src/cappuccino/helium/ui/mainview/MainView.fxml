@@ -85,7 +85,14 @@
                         </VBox>
                      </content>
                   </ScrollPane>
-                  <Button layoutX="530.0" layoutY="449.0" mnemonicParsing="false" onAction="#sendImage" text="Image" />
+                  <Button id="image-button" contentDisplay="GRAPHIC_ONLY" disable="true" layoutX="534.0" layoutY="441.0" mnemonicParsing="false" onAction="#sendImage" prefHeight="34.0" prefWidth="38.0" text="Image">
+                     <graphic>
+                        <ImageView fitHeight="33.0" fitWidth="31.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/add.png" />
+                           </image>
+                        </ImageView>
+                     </graphic></Button>
                     </children>
                 </AnchorPane>
             <Label fx:id="serverNameLabel" layoutX="14.0" layoutY="11.0" text="Test Server 1" textFill="WHITE">
