@@ -22,8 +22,9 @@ import sun.misc.BASE64Decoder;
 
 /**
  *
- * @author silvr
+ * @author Kyle Alberth
  */
+//class creates the box that will show the sent image in the format of our app.
 public class ImageMessage extends AnchorPane {
     
     @FXML
@@ -72,6 +73,7 @@ public class ImageMessage extends AnchorPane {
         return luminance > 0.179 ? Color.BLACK : Color.WHITE;
     }
     
+    //converts a hex string back into the bufferedImage it came from.
     public BufferedImage hexToImage(String imageString) {
         BufferedImage image = null;
         byte[] imageBytes;

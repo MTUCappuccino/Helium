@@ -521,6 +521,7 @@ public class MainViewController implements Initializable {
         showingBookmarked = !showingBookmarked;
     }
 
+    //Send image method pulls up a file chooser and allows you to pick a jpg or png file to send.
     @FXML
     public void sendImage(ActionEvent event) throws IOException {
         FileChooser fileChooser = new FileChooser();
@@ -551,7 +552,7 @@ public class MainViewController implements Initializable {
         addImageToScreen(message, currentServer, messages.getChildren());
     }
 
-    //TODO
+    //adds the chosen image from sendImage to the screen as well as position it based on who sent it.
     public Node addImageToScreen(Message m, Server s, ObservableList list) {
         ImageMessage view = new ImageMessage();
         view.setImage(m);
@@ -584,6 +585,7 @@ public class MainViewController implements Initializable {
         
     }
 
+    //converts the input bufferedImage to a hex string so it can be sent across the server.
     public String imageToHex(BufferedImage image, String type) {
         String hex = null;
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -601,6 +603,7 @@ public class MainViewController implements Initializable {
         return hex;
     }
 
+    //converts a hex string that has been sent across the server back into a bufferedImage.
     public BufferedImage hexToImage(String imageString) {
         BufferedImage image = null;
         byte[] imageBytes;

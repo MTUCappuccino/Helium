@@ -73,7 +73,7 @@ public class Server {
         	}
         	catch(Exception e) { }
         }
-        if(notificationsAllowed.get() || (newMessage.getContent().contains("@" + handle + " ") && mentionsAllowed.get())) {
+        if(notificationsAllowed.get() || (newMessage.getContent().contains("@" + handle + " ") && mentionsAllowed.get()) && (newMessage.getContentType() != Message.ContentType.IMAGE)) {
             try {
                 displayTray(newMessage);
             } catch (AWTException | MalformedURLException e){
@@ -85,12 +85,13 @@ public class Server {
     private void displayTray(Message message) throws AWTException, java.net.MalformedURLException {
         SystemTray tray = SystemTray.getSystemTray();
 
-        Image image = Toolkit.getDefaultToolkit().createImage("src/HeliumLogo.png");
+        URL url = System.class.getResource("src/cappuccino.helium.ui.images/logo.png");
+        Image image = Toolkit.getDefaultToolkit().createImage(url);
         TrayIcon trayIcon = new TrayIcon(image, "Tray Demo");
         trayIcon.setImageAutoSize(true);
         trayIcon.setToolTip("Helium");
         tray.add(trayIcon);
-        trayIcon.displayMessage(new String(message.getContent()), message.getSenderHandle(), MessageType.INFO);
+        trayIcon.displayMessage(message.getSenderHandle(), new String(message.getContent()), MessageType.INFO);
     }
         
     public String getIP() {
