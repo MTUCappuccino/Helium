@@ -18,7 +18,7 @@
         <EnterCodeView fx:id="enterCode" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
         <AddServerByAddressView fx:id="addByAddress" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
         
-        <Label id="label" layoutX="10.0" layoutY="10.0" text="Joining XXX Server" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="20.0">
+        <Label id="label" layoutX="10.0" layoutY="10.0" text="Joining XXX Server" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="20.0" visible="false">
             <font>
                 <Font name="System Bold" size="12.0" />
             </font>

@@ -44,7 +44,7 @@ public class NewEmptyJUnitTest {
     // public void hello() {}
     @Test
     public void notificationTest() {
-        Server server = new Server("1.1.1.1.1", 9090);
+        Server server = new Server("1.1.1.1", 9090, null);
         server.recieveMessage(new Message(Message.MessageType.NEW_MESSAGE, Message.ContentType.TEXT, "Kyle", "Hello World!"));
     }
 }
