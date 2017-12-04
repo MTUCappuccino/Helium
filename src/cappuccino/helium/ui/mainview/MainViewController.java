@@ -10,6 +10,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
@@ -18,6 +19,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -64,8 +67,7 @@ import javafx.util.Duration;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
+import javax.xml.bind.DatatypeConverter;
 
 /**
  * FXML Controller class
@@ -156,12 +158,22 @@ public class MainViewController implements Initializable {
                             while (c2.next()) {
                                 if (c2.wasAdded()) {
                                     for (Message m : c2.getAddedSubList()) {
-                                        System.out.println("GUI is handling message: " + m);
+                                        if (m.getContentType() == Message.ContentType.TEXT) {
+                                            System.out.println("GUI is handling message: " + m);
+                                        } else {
+                                            System.out.println("GUI is handling message: " + String.valueOf(m.getType()) + ","
+                                                    + String.valueOf(m.getId()) + "," + String.valueOf(m.getContentType())
+                                                    + "," + m.getSenderHandle() + ",[image data not shown]\n");
+                                        }
                                         if (m.getSenderHandle().equals(s.getHandle())) {
                                             continue; // skip this message because I sent it
                                         }
                                         Platform.runLater(() -> {
-                                            addMessageToScreen(m, s, messages.getChildren());
+                                            if (m.getContentType() == Message.ContentType.TEXT) {
+                                                addMessageToScreen(m, s, messages.getChildren());
+                                            } else {
+                                                addImageToScreen(m, s, messages.getChildren());
+                                            }
                                         });
                                     }
                                 }
@@ -190,9 +202,9 @@ public class MainViewController implements Initializable {
         bookmarkedViews = new HashMap<>();
 
         contextMenu = new ContextMenu();
-        bookmark = new MenuItem("Bookmark", new ImageView(new Image(getClass().getResource("../images/bookmark_black.png").toString(), 25, 25, true, true)));
-        MenuItem edit = new MenuItem("Edit Message", new ImageView(new Image(getClass().getResource("../images/edit.png").toString(), 25, 25, true, true)));
-        MenuItem delete = new MenuItem("Delete Message", new ImageView(new Image(getClass().getResource("../images/delete.png").toString(), 25, 25, true, true)));
+        bookmark = new MenuItem("Bookmark", new ImageView(new Image(getClass().getResource("/cappuccino/helium/ui/images/bookmark_black.png").toString(), 25, 25, true, true)));
+        MenuItem edit = new MenuItem("Edit Message", new ImageView(new Image(getClass().getResource("/cappuccino/helium/ui/images/edit.png").toString(), 25, 25, true, true)));
+        MenuItem delete = new MenuItem("Delete Message", new ImageView(new Image(getClass().getResource("/cappuccino/helium/ui/images/delete.png").toString(), 25, 25, true, true)));
         bookmark.setOnAction((event) -> {
             if (contextMenuOpenOnMessage.isBookmarked()) {
                 contextMenuOpenOnMessage.setBookmarked(false);
@@ -202,8 +214,13 @@ public class MainViewController implements Initializable {
                 }
             } else {
                 contextMenuOpenOnMessage.setBookmarked(true);
-                Node n = addMessageToScreen(contextMenuOpenOnMessage, null, currentServer.getBookmarkedMessageViews());
-                bookmarkedViews.put(contextMenuOpenOnMessage, n);
+                if (contextMenuOpenOnMessage.getContentType() == Message.ContentType.TEXT) {
+                    Node n = addMessageToScreen(contextMenuOpenOnMessage, null, currentServer.getBookmarkedMessageViews());
+                    bookmarkedViews.put(contextMenuOpenOnMessage, n);
+                } else {
+                    Node n = addImageToScreen(contextMenuOpenOnMessage, null, currentServer.getBookmarkedMessageViews());
+                    bookmarkedViews.put(contextMenuOpenOnMessage, n);
+                }
             }
         });
         edit.setOnAction((event) -> {
@@ -213,6 +230,15 @@ public class MainViewController implements Initializable {
 
         });
         contextMenu.getItems().addAll(bookmark, edit, delete);
+    }
+
+    public void updateDisplay(Server s) {
+        Platform.runLater(() -> {
+            if (currentServer == s) {
+                displayServer(s);
+                switchColors(currentButton, s.getTheme());
+            }
+        });
     }
 
     private void displayServer(Server s) {
@@ -279,13 +305,27 @@ public class MainViewController implements Initializable {
         coordinator.askInputViewForCode((code) -> {
             new Thread(() -> {
                 try {
-                    Socket socket = new Socket("141.219.201.62", 13245);
+                    Socket socket = new Socket("141.219.201.139", 9090);
                     BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
                     out.write(code + "\n");
                     out.flush();
                     String response = in.readLine();
                     System.out.print("Central said: " + response);
+
+                    if (response.equals("invalid_code")) {
+                        Platform.runLater(() -> {
+                            Alert alert = new Alert(AlertType.ERROR);
+                            alert.setTitle("Invalid Code");
+                            alert.setHeaderText("Invalid Code");
+                            alert.setContentText("There is no server registered with that code. ");
+
+                            alert.show();
+                        });
+                        coordinator.hideProgressIndicators();
+                        return;
+                    }
+
                     String[] unparsedSegments = response.split(",");
                     int length1 = Integer.parseInt(unparsedSegments[0]);
                     int length2 = Integer.parseInt(unparsedSegments[1]);
@@ -317,7 +357,7 @@ public class MainViewController implements Initializable {
 
     private void connectToServer(String url, String port) {
         new Thread(() -> {
-            Server s = new Server(url, Integer.parseInt(port));
+            Server s = new Server(url, Integer.parseInt(port), this);
             try {
                 boolean[] params = s.connect();
                 if (!params[0] && !params[1]) {
@@ -555,12 +595,14 @@ public class MainViewController implements Initializable {
     //adds the chosen image from sendImage to the screen as well as position it based on who sent it.
     public Node addImageToScreen(Message m, Server s, ObservableList list) {
         ImageMessage view = new ImageMessage();
-        view.setImage(m);
+        view.setMessage(m);
         HBox line = new HBox();
         if (m.getSenderHandle().equals(currentServer.getHandle())) {
+            view.setRight();
             view.setColor(currentServer.getTheme());
             line.setAlignment(Pos.CENTER_RIGHT);
         } else {
+            view.setLeft();
             view.setColor(Color.valueOf("lightgray"));
             line.setAlignment(Pos.CENTER_LEFT);
         }
@@ -582,41 +624,38 @@ public class MainViewController implements Initializable {
             s.addMessageView(line);
         }
         return line;
-        
+
     }
 
     //converts the input bufferedImage to a hex string so it can be sent across the server.
     public String imageToHex(BufferedImage image, String type) {
-        String hex = null;
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
         try {
-            ImageIO.write(image, type, bos);
-            byte[] imageBytes = bos.toByteArray();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(image, type, baos);
+            byte[] bytes = baos.toByteArray();
 
-            BASE64Encoder encoder = new BASE64Encoder();
-            hex = encoder.encode(imageBytes);
-
-            bos.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+            return DatatypeConverter.printHexBinary(bytes);
+        } catch (IOException ex) {
+            Logger.getLogger(MainViewController.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return hex;
+        return null;
     }
 
     //converts a hex string that has been sent across the server back into a bufferedImage.
     public BufferedImage hexToImage(String imageString) {
-        BufferedImage image = null;
-        byte[] imageBytes;
-
-        try {
-            BASE64Decoder decoder = new BASE64Decoder();
-            imageBytes = decoder.decodeBuffer(imageString);
-            ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
-            image = ImageIO.read(bis);
-            bis.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+        int len = imageString.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(imageString.charAt(i), 16) << 4)
+                    + Character.digit(imageString.charAt(i + 1), 16));
         }
-        return image;
+        InputStream in = new ByteArrayInputStream(data);
+        BufferedImage bImageFromConvert = null;
+        try {
+            bImageFromConvert = ImageIO.read(in);
+        } catch (IOException ex) {
+            Logger.getLogger(MainViewController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return bImageFromConvert;
     }
 }

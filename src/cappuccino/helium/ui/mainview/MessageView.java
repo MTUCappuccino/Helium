@@ -1,7 +1,6 @@
 package cappuccino.helium.ui.mainview;
 
 import cappuccino.helium.network.Message;
-import static com.sun.org.apache.xalan.internal.lib.ExsltDatetime.time;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;

@@ -140,16 +140,34 @@ public class Connection implements Runnable {
                 String[] unparsedSegments = message.split(",");
 
                 Message.MessageType type = Message.MessageType.values()[Integer.parseInt(unparsedSegments[0])];
-                
+
                 if (type == Message.MessageType.HEARTBEAT) {
                     continue;
+                } else if (type == Message.MessageType.CLOSE_CONNECTION) {
+                    disconnect();
+                    return;
+                } else if (type == Message.MessageType.UPDATE_SERVER_DATA) {
+                    String m = message.substring(unparsedSegments[0].length()
+                        + unparsedSegments[1].length() + unparsedSegments[2].length()
+                        + unparsedSegments[3].length() + unparsedSegments[4].length() + 5);
+                    
+                    String[] items = m.split(";");
+                    server.setName(items[0]);
+                    server.setTheme(Color.valueOf(items[1]));
+                    if (!items[2].equals("NULL")) {
+                        server.setIcon(new URL(items[2]));
+                    }
+                    server.notifyPropertiesUpdated();
+                    continue;
                 }
-                
+
                 int id = Integer.parseInt(unparsedSegments[1]);
                 Message.ContentType contentType = Message.ContentType.values()[Integer.parseInt(unparsedSegments[2])];
                 String sender = unparsedSegments[3];
                 long send_time = Long.parseLong(unparsedSegments[4]);
-                String userMessage = unparsedSegments[5];
+                String userMessage = message.substring(unparsedSegments[0].length()
+                        + unparsedSegments[1].length() + unparsedSegments[2].length()
+                        + unparsedSegments[3].length() + unparsedSegments[4].length() + 5);
 
                 Message m = new Message(type, id, contentType, sender, send_time, userMessage);
                 server.recieveMessage(m);

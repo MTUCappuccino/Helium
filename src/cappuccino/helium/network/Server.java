@@ -1,5 +1,6 @@
 package cappuccino.helium.network;
 
+import cappuccino.helium.ui.mainview.MainViewController;
 import java.awt.AWTException;
 import java.awt.Image;
 import java.awt.SystemTray;
@@ -37,14 +38,16 @@ public class Server {
     ObservableList<Node> messageViews = FXCollections.observableArrayList();
     ObservableList<Node> bookmarkedMessageViews = FXCollections.observableArrayList();
     Connection connection;
+    MainViewController mainView;
 
-    public Server(String ip, int port) {
+    public Server(String ip, int port, MainViewController view) {
         this.ip = ip;
         this.port = port;
         connection = new Connection(this);
         name = new SimpleStringProperty("");
         notificationsAllowed = new SimpleBooleanProperty(true);
         mentionsAllowed = new SimpleBooleanProperty(true);
+        this.mainView = view;
     }
 
     public boolean[] connect() throws IOException {
@@ -192,5 +195,9 @@ public class Server {
     
     public ObservableList<Node> getBookmarkedMessageViews() {
         return bookmarkedMessageViews;
+    }
+    
+    public void notifyPropertiesUpdated() {
+        mainView.updateDisplay(this);
     }
 }
